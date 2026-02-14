@@ -384,18 +384,24 @@
     const TRIANGLE_MOUNTAIN_LEFT = 8600;
     const TRIANGLE_MOUNTAIN_BASE_BLOCKS = 11;
     const TRIANGLE_MOUNTAIN_ROWS = 6;
-    const FLAGPOLE_X = 8960;
+    // mountain right edge: 8600 + 11*40 = 9040
+    const FLAGPOLE_X = 9240;
     const FLAGPOLE_H = 380;
     const FLAG_DISPLAY_W = 56;
     const FLAG_DISPLAY_H = 44;
-    const CASTLE_X = 9000;
+    const CASTLE_X = 9500;
     const CASTLE_W = 560;
     const CASTLE_H = 500;
-    // tiles.png (411x949): castle at bottom; crop from below flagpole bases to avoid flag on top
-    const TILES_CASTLE = { sx: 0, sy: 808, sw: 205, sh: 141 };
-    const TILES_FLAGPOLE_POLE = { sx: 10, sy: 675, sw: 24, sh: 135 };
-    const TILES_FLAGPOLE_FLAG = { sx: 38, sy: 675, sw: 40, sh: 28 };
-    const TILES_FLAGPOLE_BASE = { sx: 0, sy: 780, sw: 102, sh: 30 };
+    // tiles.png (411x949) sprite regions
+    const TILES_CASTLE = { sx: 79, sy: 767, sw: 148, sh: 176 };
+    // 5 flagpole animation frames (flag slides from top to bottom)
+    const FLAGPOLE_FRAMES = [
+        { sx: 249, sy: 594, sw: 24, sh: 168 }, // frame 0: flag at top
+        { sx: 216, sy: 594, sw: 24, sh: 168 }, // frame 1: flag upper-mid
+        { sx: 182, sy: 594, sw: 24, sh: 168 }, // frame 2: flag middle
+        { sx: 149, sy: 594, sw: 24, sh: 168 }, // frame 3: flag lower-mid
+        { sx: 117, sy: 594, sw: 23, sh: 168 }, // frame 4: flag at bottom
+    ];
     const TILES_PIPE_RIM = { sx: 309, sy: 417, sw: 32, sh: 16 };
     const TILES_PIPE_BODY = { sx: 309, sy: 433, sw: 32, sh: 15 };
 
@@ -661,46 +667,43 @@
     }
 
     function drawFlagpole() {
-        var x = FLAGPOLE_X - gameState.scrollOffset;
-        if (x + 80 < 0 || x > canvas.width) return;
-        var poleW = 16;
-        var poleTop = GROUND_Y - FLAGPOLE_H;
-        var flagY = gameState.flagSliding ? gameState.flagY : poleTop;
-        var baseH = 40;
+        // Sprite is 24x168, scaled to fit FLAGPOLE_H
+        var scale = FLAGPOLE_H / 168;
+        var displayW = Math.round(24 * scale);
+        var screenX = FLAGPOLE_X - gameState.scrollOffset;
+        // The pole shaft sits at roughly local x=14 in the 24px sprite
+        var drawX = screenX - Math.round(14 * scale);
+        var drawY = GROUND_Y - FLAGPOLE_H;
+
+        if (drawX + displayW < 0 || drawX > canvas.width) return;
+
         var t = sprites.tiles;
         if (t && t.complete) {
-            var imgW = t.naturalWidth || 411;
-            var imgH = t.naturalHeight || 949;
-            var poleR = TILES_FLAGPOLE_POLE;
-            var baseR = TILES_FLAGPOLE_BASE;
-            var flagR = TILES_FLAGPOLE_FLAG;
+            // Pick animation frame based on flag slide progress
+            var frameIdx = 0; // flag at top
+            if (gameState.flagSliding || (gameState.flagReached && !gameState.flagSliding)) {
+                var poleTop = GROUND_Y - FLAGPOLE_H;
+                var slideEnd = GROUND_Y - FLAG_DISPLAY_H;
+                var progress = (gameState.flagY - poleTop) / (slideEnd - poleTop);
+                progress = Math.max(0, Math.min(1, progress));
+                frameIdx = Math.min(4, Math.floor(progress * 5));
+            }
+            var frame = FLAGPOLE_FRAMES[frameIdx];
             var smooth = ctx.imageSmoothingEnabled;
             ctx.imageSmoothingEnabled = false;
-            function drawTile(r, destX, destY, destW, destH) {
-                var sx = Math.max(0, Math.min(r.sx, imgW - 1));
-                var sy = Math.max(0, Math.min(r.sy, imgH - 1));
-                var sw = Math.min(r.sw, imgW - sx);
-                var sh = Math.min(r.sh, imgH - sy);
-                if (sw > 0 && sh > 0) ctx.drawImage(t, sx, sy, sw, sh, destX, destY, destW, destH);
-            }
-            drawTile(baseR, x - 6, GROUND_Y - baseH, 56, baseH);
-            drawTile(poleR, x, poleTop, poleW, FLAGPOLE_H);
-            drawTile(flagR, x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
+            ctx.drawImage(t, frame.sx, frame.sy, frame.sw, frame.sh,
+                          drawX, drawY, displayW, FLAGPOLE_H);
             ctx.imageSmoothingEnabled = smooth;
         } else {
-            ctx.fillStyle = '#8B6914';
-            ctx.fillRect(x - 4, GROUND_Y - baseH, poleW + 8, baseH);
-            ctx.strokeStyle = '#5C4033';
-            ctx.strokeRect(x - 4, GROUND_Y - baseH, poleW + 8, baseH);
-            ctx.fillStyle = '#C0C0C0';
-            ctx.fillRect(x, poleTop, poleW, FLAGPOLE_H);
-            ctx.fillStyle = '#808080';
-            ctx.strokeRect(x, poleTop, poleW, FLAGPOLE_H);
+            // Minimal fallback when tiles.png fails to load
+            var poleW = 8;
+            ctx.fillStyle = '#6B8E23';
+            ctx.fillRect(screenX - poleW / 2, drawY, poleW, FLAGPOLE_H);
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.arc(screenX, drawY, 10, 0, Math.PI * 2);
+            ctx.fill();
         }
-        ctx.fillStyle = '#E52521';
-        ctx.fillRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
-        ctx.fillStyle = '#8B0000';
-        ctx.strokeRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
     }
 
     function drawGroundTiles() {
@@ -965,10 +968,8 @@
         document.getElementById('memoryScreen').classList.add('hidden');
         gameState.paused = false;
         document.getElementById('instructions').style.display = 'block';
-        if (gameState.heartsCollected >= 7) {
-            gameState.running = false;
-            document.getElementById('endScreen').classList.remove('hidden');
-        }
+        // Let the player continue to the flagpole — the flag-sliding
+        // logic in updatePlayer() will show the end screen when they arrive.
     }
 
     function gameLoop() {
