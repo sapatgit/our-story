@@ -255,20 +255,40 @@
     }
 
     function generateHeartSprite() {
+        const size = 16;
         const c = document.createElement('canvas');
-        c.width = 32;
-        c.height = 32;
+        c.width = size;
+        c.height = size;
         const cctx = c.getContext('2d');
-        cctx.fillStyle = '#FF1493';
-        cctx.beginPath();
-        cctx.moveTo(16, 10);
-        cctx.bezierCurveTo(4, 4, 4, 14, 16, 26);
-        cctx.bezierCurveTo(28, 14, 28, 4, 16, 10);
-        cctx.fill();
-        cctx.fillStyle = 'rgba(255,255,255,0.5)';
-        cctx.beginPath();
-        cctx.arc(12, 12, 3, 0, Math.PI * 2);
-        cctx.fill();
+        const red = '#E52521';
+        const dark = '#8B0000';
+        const highlight = '#FF6B6B';
+        const px = function(x, y) { cctx.fillRect(x, y, 1, 1); };
+        cctx.fillStyle = dark;
+        px(2, 2); px(3, 2); px(4, 2); px(5, 2); px(6, 2); px(7, 2); px(8, 2); px(9, 2); px(10, 2); px(11, 2); px(12, 2); px(13, 2);
+        px(1, 3); px(2, 3); px(3, 3); px(4, 3); px(5, 3); px(6, 3); px(7, 3); px(8, 3); px(9, 3); px(10, 3); px(11, 3); px(12, 3); px(13, 3); px(14, 3);
+        px(0, 4); px(1, 4); px(2, 4); px(3, 4); px(4, 4); px(5, 4); px(6, 4); px(7, 4); px(8, 4); px(9, 4); px(10, 4); px(11, 4); px(12, 4); px(13, 4); px(14, 4); px(15, 4);
+        px(0, 5); px(1, 5); px(2, 5); px(3, 5); px(4, 5); px(5, 5); px(6, 5); px(7, 5); px(8, 5); px(9, 5); px(10, 5); px(11, 5); px(12, 5); px(13, 5); px(14, 5); px(15, 5);
+        px(0, 6); px(1, 6); px(2, 6); px(3, 6); px(4, 6); px(5, 6); px(6, 6); px(7, 6); px(8, 6); px(9, 6); px(10, 6); px(11, 6); px(12, 6); px(13, 6); px(14, 6); px(15, 6);
+        px(1, 7); px(2, 7); px(3, 7); px(4, 7); px(5, 7); px(6, 7); px(7, 7); px(8, 7); px(9, 7); px(10, 7); px(11, 7); px(12, 7); px(13, 7); px(14, 7);
+        px(2, 8); px(3, 8); px(4, 8); px(5, 8); px(6, 8); px(7, 8); px(8, 8); px(9, 8); px(10, 8); px(11, 8); px(12, 8); px(13, 8);
+        px(3, 9); px(4, 9); px(5, 9); px(6, 9); px(7, 9); px(8, 9); px(9, 9); px(10, 9); px(11, 9); px(12, 9);
+        px(4, 10); px(5, 10); px(6, 10); px(7, 10); px(8, 10); px(9, 10); px(10, 10); px(11, 10);
+        px(5, 11); px(6, 11); px(7, 11); px(8, 11); px(9, 11); px(10, 11);
+        px(6, 12); px(7, 12); px(8, 12); px(9, 12);
+        px(7, 13); px(8, 13);
+        cctx.fillStyle = red;
+        px(4, 3); px(5, 3); px(6, 3); px(7, 3); px(8, 3); px(9, 3); px(10, 3); px(11, 3);
+        px(2, 4); px(3, 4); px(4, 4); px(5, 4); px(6, 4); px(7, 4); px(8, 4); px(9, 4); px(10, 4); px(11, 4); px(12, 4); px(13, 4);
+        px(2, 5); px(3, 5); px(4, 5); px(5, 5); px(6, 5); px(7, 5); px(8, 5); px(9, 5); px(10, 5); px(11, 5); px(12, 5); px(13, 5);
+        px(3, 6); px(4, 6); px(5, 6); px(6, 6); px(7, 6); px(8, 6); px(9, 6); px(10, 6); px(11, 6); px(12, 6); px(13, 6);
+        px(4, 7); px(5, 7); px(6, 7); px(7, 7); px(8, 7); px(9, 7); px(10, 7); px(11, 7); px(12, 7);
+        px(5, 8); px(6, 8); px(7, 8); px(8, 8); px(9, 8); px(10, 8); px(11, 8);
+        px(6, 9); px(7, 9); px(8, 9); px(9, 9); px(10, 9);
+        px(7, 10); px(8, 10); px(9, 10);
+        px(7, 11); px(8, 11);
+        cctx.fillStyle = highlight;
+        px(5, 4); px(6, 4); px(5, 5); px(6, 5);
         return c.toDataURL('image/png');
     }
 
@@ -337,9 +357,56 @@
         { title: "Horror Movie Nights 🎬", text: "Our favorite thing - getting scared together during horror movies, holding each other close 🎬👻" }
     ];
 
-    const HEART_POSITIONS = [
-        { x: 550 }, { x: 1200 }, { x: 1900 }, { x: 2650 }, { x: 3400 }, { x: 4200 }, { x: 5000 }
+    // Pipes rising from ground (world X; spaced with gaps)
+    const PIPE_XS = [500, 1600, 3000, 4600, 6200];
+    const PIPE_W = 48;
+    const PIPE_H = 96;
+
+    // Brick platforms (yOff = offset from GROUND_Y; higher = more negative)
+    const BRICK_PLATFORMS = [
+        { x: 950, yOff: -112, w: 120, h: 24 },
+        { x: 2100, yOff: -136, w: 120, h: 24 },
+        { x: 3700, yOff: -120, w: 140, h: 24 },
+        { x: 5300, yOff: -104, w: 120, h: 24 }
     ];
+
+    // Platform strips with heart block in middle (----^--): x, yOff, numBlocks (40px each), index of ? block
+    const HEART_PLATFORMS = [
+        { x: 670, yOff: -148, numBlocks: 5, heartIndex: 2 },
+        { x: 1870, yOff: -168, numBlocks: 5, heartIndex: 2 },
+        { x: 3120, yOff: -158, numBlocks: 5, heartIndex: 2 },
+        { x: 4320, yOff: -178, numBlocks: 5, heartIndex: 2 },
+        { x: 5520, yOff: -148, numBlocks: 5, heartIndex: 2 },
+        { x: 6820, yOff: -168, numBlocks: 5, heartIndex: 2 },
+        { x: 8120, yOff: -158, numBlocks: 5, heartIndex: 2 }
+    ];
+    // Mountain steps to cross (hill; with gaps between sections)
+    const MOUNTAIN_BLOCKS = [
+        { x: 2550, yOff: -40, w: 80, h: 40 },
+        { x: 2650, yOff: -80, w: 80, h: 40 },
+        { x: 2750, yOff: -120, w: 80, h: 40 },
+        { x: 2850, yOff: -80, w: 80, h: 40 },
+        { x: 2950, yOff: -40, w: 80, h: 40 }
+    ];
+
+    // End of level: triangular mountain (ground blocks), then flagpole, then castle
+    const TRIANGLE_MOUNTAIN_LEFT = 8600;
+    const TRIANGLE_MOUNTAIN_BASE_BLOCKS = 11;
+    const TRIANGLE_MOUNTAIN_ROWS = 6;
+    const FLAGPOLE_X = 8960;
+    const FLAGPOLE_H = 380;
+    const FLAG_DISPLAY_W = 56;
+    const FLAG_DISPLAY_H = 44;
+    const CASTLE_X = 9000;
+    const CASTLE_W = 320;
+    const CASTLE_H = 300;
+    // tiles.png (411x949): castles bottom, flagpoles row above. Pipes: green rim/body.
+    const TILES_CASTLE = { sx: 0, sy: 760, sw: 205, sh: 189 };
+    const TILES_FLAGPOLE_POLE = { sx: 10, sy: 675, sw: 24, sh: 135 };
+    const TILES_FLAGPOLE_FLAG = { sx: 38, sy: 675, sw: 40, sh: 28 };
+    const TILES_FLAGPOLE_BASE = { sx: 0, sy: 780, sw: 102, sh: 30 };
+    const TILES_PIPE_RIM = { sx: 309, sy: 417, sw: 32, sh: 16 };
+    const TILES_PIPE_BODY = { sx: 309, sy: 433, sw: 32, sh: 15 };
 
     let gameState = {
         running: false,
@@ -347,7 +414,10 @@
         heartsCollected: 0,
         totalHearts: 7,
         scrollOffset: 0,
-        animTime: 0
+        animTime: 0,
+        flagReached: false,
+        flagSliding: false,
+        flagY: 0
     };
 
     let player = {
@@ -362,6 +432,7 @@
     };
 
     let hearts = [];
+    let questionBlockHit = []; // one bool per block: true after hit from below
     let gameLoopId = null;
 
     function resizeCanvas() {
@@ -375,15 +446,17 @@
     window.addEventListener('load', resizeCanvas);
 
     function initHearts() {
-        hearts = HEART_POSITIONS.map(function(pos, i) {
-            const y = GROUND_Y - 120 - (i % 3) * 40;
+        questionBlockHit = HEART_PLATFORMS.map(function() { return false; });
+        hearts = HEART_PLATFORMS.map(function(plat, i) {
+            const blockCenterX = plat.x + plat.heartIndex * TILE_W + TILE_W / 2;
             return {
                 memoryId: i,
-                x: pos.x,
-                y: y,
+                x: blockCenterX - HEART_W / 2,
+                y: GROUND_Y + plat.yOff - HEART_H - 8,
                 width: HEART_W,
                 height: HEART_H,
                 collected: false,
+                released: false,
                 angle: Math.random() * Math.PI * 2
             };
         });
@@ -427,27 +500,240 @@
 
     function drawPipes() {
         var t = sprites.tiles;
-        var pipeX = [400, 1200, 2000, 3000, 4000];
+        var scale = 2;
+        PIPE_XS.forEach(function(worldX, idx) {
+            var x = worldX - gameState.scrollOffset;
+            if (x + PIPE_W * scale < 0 || x > canvas.width) return;
+            if (t && t.complete) {
+                var rim = TILES_PIPE_RIM, body = TILES_PIPE_BODY;
+                var smooth = ctx.imageSmoothingEnabled;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(t, rim.sx, rim.sy, rim.sw, rim.sh, x, GROUND_Y - PIPE_H, rim.sw * scale, rim.sh * scale);
+                ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + 32, body.sw * scale, body.sh * scale);
+                ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + 64, body.sw * scale, body.sh * scale);
+                ctx.imageSmoothingEnabled = smooth;
+            } else {
+                var fill = idx % 2 === 0 ? '#00A800' : '#6A6A6A';
+                var dark = idx % 2 === 0 ? '#006000' : '#4A4A4A';
+                ctx.fillStyle = fill;
+                ctx.fillRect(x, GROUND_Y - PIPE_H, PIPE_W, PIPE_H);
+                ctx.fillStyle = dark;
+                ctx.fillRect(x - 4, GROUND_Y - PIPE_H - 6, PIPE_W + 8, 10);
+                ctx.fillStyle = fill;
+            }
+        });
+    }
+
+    function drawCastle() {
+        var dx = CASTLE_X - gameState.scrollOffset;
+        if (dx + CASTLE_W < 0 || dx > canvas.width + 50) return;
+        var baseY = GROUND_Y - CASTLE_H + 24;
+        var t = sprites.tiles;
         if (t && t.complete) {
-            var scale = 2;
-            pipeX.forEach(function(baseX) {
-                var x = baseX - gameState.scrollOffset * 0.4;
-                if (x + 64 < 0 || x > canvas.width) return;
-                ctx.drawImage(t, 309, 417, 32, 16, x, GROUND_Y - 96, 32 * scale, 16 * scale);
-                ctx.drawImage(t, 309, 433, 32, 15, x, GROUND_Y - 64, 32 * scale, 15 * scale);
-                ctx.drawImage(t, 309, 433, 32, 15, x, GROUND_Y - 32, 32 * scale, 15 * scale);
-            });
+            var r = TILES_CASTLE;
+            var imgW = t.naturalWidth || 411;
+            var imgH = t.naturalHeight || 949;
+            var sx = Math.max(0, r.sx);
+            var sy = Math.max(0, r.sy);
+            var sw = Math.min(r.sw, imgW - sx);
+            var sh = Math.min(r.sh, imgH - sy);
+            if (sw > 0 && sh > 0) {
+                var smooth = ctx.imageSmoothingEnabled;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(t, sx, sy, sw, sh, dx, baseY, CASTLE_W, CASTLE_H);
+                ctx.imageSmoothingEnabled = smooth;
+            }
         } else {
-            ctx.fillStyle = '#00A800';
-            pipeX.forEach(function(baseX) {
-                var x = baseX - gameState.scrollOffset * 0.4;
-                if (x + 56 < 0 || x > canvas.width) return;
-                ctx.fillRect(x, GROUND_Y - 96, 48, 96);
-                ctx.fillStyle = '#006000';
-                ctx.fillRect(x - 4, GROUND_Y - 102, 56, 10);
-                ctx.fillStyle = '#00A800';
-            });
+            var tw = TILE_W, th = TILE_H;
+            var img = sprites.ground;
+            var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+            var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+            for (var cx = 0; cx < CASTLE_W; cx += tw) {
+                for (var cy = 0; cy < CASTLE_H; cy += th) {
+                    if (img && img.complete) {
+                        ctx.drawImage(img, 0, 0, sw, sh, dx + cx, baseY + cy, tw, th);
+                        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                        ctx.fillRect(dx + cx, baseY + cy, tw, th);
+                    } else {
+                        ctx.fillStyle = '#4A4A4A';
+                        ctx.fillRect(dx + cx, baseY + cy, tw, th);
+                    }
+                }
+            }
+            var doorW = 72, doorH = 80;
+            var doorX = dx + (CASTLE_W - doorW) / 2;
+            var doorY = baseY + CASTLE_H - doorH - 24;
+            ctx.fillStyle = '#0D0D0D';
+            ctx.fillRect(doorX, doorY, doorW, doorH);
         }
+    }
+
+    function drawBrickPlatforms() {
+        var img = sprites.ground;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        function drawPlatform(x, y, w, h) {
+            x = x - gameState.scrollOffset;
+            if (x + w < 0 || x > canvas.width) return;
+            if (!img || !img.complete) {
+                ctx.fillStyle = '#C87838';
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+            } else {
+                for (var cx = 0; cx < w; cx += tw) {
+                    for (var cy = 0; cy < h; cy += th) {
+                        ctx.drawImage(img, 0, 0, sw, sh, x + cx, y + cy, tw, th);
+                    }
+                }
+            }
+        }
+        BRICK_PLATFORMS.forEach(function(p) {
+            drawPlatform(p.x, GROUND_Y + p.yOff, p.w, p.h);
+        });
+    }
+
+    function drawHeartPlatforms() {
+        var img = sprites.ground;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        HEART_PLATFORMS.forEach(function(plat, i) {
+            var baseX = plat.x - gameState.scrollOffset;
+            if (baseX + plat.numBlocks * tw < 0 || baseX > canvas.width) return;
+            var y = GROUND_Y + plat.yOff;
+            for (var col = 0; col < plat.numBlocks; col++) {
+                var x = baseX + col * tw;
+                if (x + tw < 0 || x > canvas.width) continue;
+                var isHeartBlock = col === plat.heartIndex;
+                var hit = isHeartBlock && questionBlockHit[i];
+                if (isHeartBlock) {
+                    if (hit) {
+                        ctx.fillStyle = '#8B6914';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#5C4033';
+                    } else {
+                        ctx.fillStyle = '#C87838';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#8B4513';
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold ' + (th * 0.5) + 'px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('?', x + tw / 2, y + th * 0.72);
+                        ctx.textAlign = 'left';
+                    }
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, tw, th);
+                } else {
+                    if (img && img.complete) {
+                        ctx.drawImage(img, 0, 0, sw, sh, x, y, tw, th);
+                    } else {
+                        ctx.fillStyle = '#C87838';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#8B4513';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x, y, tw, th);
+                    }
+                }
+            }
+        });
+    }
+
+    function drawTriangleMountain() {
+        var img = sprites.ground;
+        var baseLeft = TRIANGLE_MOUNTAIN_LEFT - gameState.scrollOffset;
+        if (baseLeft + TRIANGLE_MOUNTAIN_BASE_BLOCKS * TILE_W < 0 || baseLeft > canvas.width) return;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        var centerX = baseLeft + (TRIANGLE_MOUNTAIN_BASE_BLOCKS * tw) / 2;
+        for (var row = 0; row < TRIANGLE_MOUNTAIN_ROWS; row++) {
+            var blocksInRow = TRIANGLE_MOUNTAIN_BASE_BLOCKS - 2 * row;
+            if (blocksInRow < 1) break;
+            var rowY = GROUND_Y - (row + 1) * th;
+            var rowLeft = centerX - (blocksInRow * tw) / 2;
+            for (var col = 0; col < blocksInRow; col++) {
+                var tx = rowLeft + col * tw;
+                if (tx + tw < 0 || tx > canvas.width) continue;
+                if (img && img.complete) {
+                    ctx.drawImage(img, 0, 0, sw, sh, tx, rowY, tw, th);
+                } else {
+                    ctx.fillStyle = '#8B7355';
+                    ctx.fillRect(tx, rowY, tw, th);
+                    ctx.strokeStyle = '#5C4033';
+                    ctx.strokeRect(tx, rowY, tw, th);
+                }
+            }
+        }
+    }
+
+    function drawFlagpole() {
+        var x = FLAGPOLE_X - gameState.scrollOffset;
+        if (x + 80 < 0 || x > canvas.width) return;
+        var poleW = 16;
+        var poleTop = GROUND_Y - FLAGPOLE_H;
+        var flagY = gameState.flagSliding ? gameState.flagY : poleTop;
+        var baseH = 40;
+        var t = sprites.tiles;
+        if (t && t.complete) {
+            var imgW = t.naturalWidth || 411;
+            var imgH = t.naturalHeight || 949;
+            var poleR = TILES_FLAGPOLE_POLE;
+            var baseR = TILES_FLAGPOLE_BASE;
+            var flagR = TILES_FLAGPOLE_FLAG;
+            var smooth = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
+            function drawTile(r, destX, destY, destW, destH) {
+                var sx = Math.max(0, Math.min(r.sx, imgW - 1));
+                var sy = Math.max(0, Math.min(r.sy, imgH - 1));
+                var sw = Math.min(r.sw, imgW - sx);
+                var sh = Math.min(r.sh, imgH - sy);
+                if (sw > 0 && sh > 0) ctx.drawImage(t, sx, sy, sw, sh, destX, destY, destW, destH);
+            }
+            drawTile(baseR, x - 6, GROUND_Y - baseH, 56, baseH);
+            drawTile(poleR, x, poleTop, poleW, FLAGPOLE_H);
+            drawTile(flagR, x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
+            ctx.imageSmoothingEnabled = smooth;
+        } else {
+            ctx.fillStyle = '#8B6914';
+            ctx.fillRect(x - 4, GROUND_Y - baseH, poleW + 8, baseH);
+            ctx.strokeStyle = '#5C4033';
+            ctx.strokeRect(x - 4, GROUND_Y - baseH, poleW + 8, baseH);
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(x, poleTop, poleW, FLAGPOLE_H);
+            ctx.fillStyle = '#808080';
+            ctx.strokeRect(x, poleTop, poleW, FLAGPOLE_H);
+            ctx.fillStyle = '#E52521';
+            ctx.fillRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
+            ctx.fillStyle = '#8B0000';
+            ctx.strokeRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
+        }
+    }
+
+    function drawMountainBlocks() {
+        var img = sprites.ground;
+        MOUNTAIN_BLOCKS.forEach(function(p) {
+            var x = p.x - gameState.scrollOffset;
+            if (x + p.w < 0 || x > canvas.width) return;
+            var y = GROUND_Y + p.yOff;
+            if (!img || !img.complete) {
+                ctx.fillStyle = '#8B7355';
+                ctx.fillRect(x, y, p.w, p.h);
+                ctx.strokeStyle = '#5C4033';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, p.w, p.h);
+            } else {
+                var tw = TILE_W, th = TILE_H;
+                var sw = img.naturalWidth === 80 ? 16 : tw, sh = img.naturalWidth === 80 ? 16 : th;
+                for (var cx = 0; cx < p.w; cx += tw) {
+                    for (var cy = 0; cy < p.h; cy += th) {
+                        ctx.drawImage(img, 0, 0, sw, sh, x + cx, y + cy, tw, th);
+                    }
+                }
+            }
+        });
     }
 
     function drawGroundTiles() {
@@ -470,8 +756,10 @@
 
     function drawHearts() {
         if (!sprites.heart || !sprites.heart.complete) return;
+        var smooth = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = false;
         hearts.forEach(function(heart) {
-            if (heart.collected) return;
+            if (heart.collected || !heart.released) return;
             const x = heart.x - gameState.scrollOffset;
             if (x + HEART_W < 0 || x > canvas.width) return;
             heart.angle += 0.05;
@@ -479,9 +767,10 @@
             ctx.save();
             ctx.translate(x + HEART_W / 2, heart.y + HEART_H / 2);
             ctx.scale(scale, scale);
-            ctx.drawImage(sprites.heart, -HEART_W / 2, -HEART_H / 2, HEART_W, HEART_H);
+            ctx.drawImage(sprites.heart, 0, 0, 16, 16, -HEART_W / 2, -HEART_H / 2, HEART_W, HEART_H);
             ctx.restore();
         });
+        ctx.imageSmoothingEnabled = smooth;
     }
 
     function drawPlayer() {
@@ -489,12 +778,21 @@
         const screenX = player.x - gameState.scrollOffset;
         if (screenX + CHAR_DISPLAY_W < 0 || screenX > canvas.width) return;
         var r, dw, dh, dy, img = sprites.character;
-        var flip = player.facing === -1;
+        var faceRight = player.facing === 1;
         if (useFallbackCharacter) {
             var frame = player.isAirborne ? 4 : Math.floor(gameState.animTime / 8) % 4;
             var w = 32, h = 48;
-            if (flip) ctx.drawImage(img, frame * 32, 0, w, h, screenX + w, player.y - h, -w, h);
-            else ctx.drawImage(img, frame * 32, 0, w, h, screenX, player.y - h, w, h);
+            var drawY = player.y - h;
+            if (faceRight) {
+                ctx.save();
+                ctx.translate(screenX + w / 2, drawY + h / 2);
+                ctx.scale(-1, 1);
+                ctx.translate(-(screenX + w / 2), -(drawY + h / 2));
+                ctx.drawImage(img, frame * 32, 0, w, h, screenX, drawY, w, h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(img, frame * 32, 0, w, h, screenX, drawY, w, h);
+            }
             return;
         }
         if (player.isAirborne) {
@@ -509,31 +807,181 @@
             dy = player.y - dh;
         }
         var sy = img.naturalHeight - r[1] - r[3];
-        if (flip) ctx.drawImage(img, r[0], sy, r[2], r[3], screenX + dw, dy, -dw, dh);
-        else ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+        if (faceRight) {
+            ctx.save();
+            ctx.translate(screenX + dw / 2, dy + dh / 2);
+            ctx.scale(-1, 1);
+            ctx.translate(-(screenX + dw / 2), -(dy + dh / 2));
+            ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+            ctx.restore();
+        } else {
+            ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+        }
     }
 
     var keys = { left: false, right: false };
 
     function updatePlayer() {
-        if (keys.right) { player.x += SCROLL_SPEED; player.facing = 1; }
-        if (keys.left) { player.x -= SCROLL_SPEED; player.facing = -1; }
+        var poleW = 16;
+        var poleTopY = GROUND_Y - FLAGPOLE_H;
+
+        if (gameState.flagSliding) {
+            gameState.flagY += 6;
+            player.x = FLAGPOLE_X - 6;
+            player.y = gameState.flagY - player.height + 10;
+            if (gameState.flagY >= GROUND_Y - FLAG_DISPLAY_H) {
+                gameState.flagSliding = false;
+                gameState.running = false;
+                document.getElementById('endScreen').classList.remove('hidden');
+            }
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (gameState.flagReached) {
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (!gameState.flagReached && player.x + player.width >= FLAGPOLE_X && player.x <= FLAGPOLE_X + poleW + 24) {
+            gameState.flagReached = true;
+            gameState.flagSliding = true;
+            gameState.flagY = poleTopY;
+            player.x = FLAGPOLE_X - 6;
+            player.velocityY = 0;
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (keys.right && !keys.left) {
+            player.x += SCROLL_SPEED;
+            player.facing = 1;
+        } else if (keys.left && !keys.right) {
+            player.x -= SCROLL_SPEED;
+            player.facing = -1;
+        }
         player.x = Math.max(100, player.x);
         player.velocityY += GRAVITY;
         player.y += player.velocityY;
-        player.isAirborne = player.y < GROUND_Y;
-        if (player.y >= GROUND_Y) {
-            player.y = GROUND_Y;
-            player.velocityY = 0;
-            player.jumping = false;
+
+        var footY = player.y;
+        var headY = player.y - player.height;
+        var left = player.x;
+        var right = player.x + player.width;
+
+        function getTriangleMountainPlatforms() {
+            var list = [];
+            var tw = TILE_W, th = TILE_H;
+            var centerWorld = TRIANGLE_MOUNTAIN_LEFT + (TRIANGLE_MOUNTAIN_BASE_BLOCKS * tw) / 2;
+            for (var row = 0; row < TRIANGLE_MOUNTAIN_ROWS; row++) {
+                var blocksInRow = TRIANGLE_MOUNTAIN_BASE_BLOCKS - 2 * row;
+                if (blocksInRow < 1) break;
+                var rowY = GROUND_Y - (row + 1) * th;
+                var rowLeftWorld = centerWorld - (blocksInRow * tw) / 2;
+                for (var col = 0; col < blocksInRow; col++) {
+                    list.push({ x: rowLeftWorld + col * tw, y: rowY, w: tw, h: th });
+                }
+            }
+            return list;
         }
+        function getPlatforms() {
+            var list = [];
+            BRICK_PLATFORMS.forEach(function(p) {
+                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.w, h: p.h });
+            });
+            HEART_PLATFORMS.forEach(function(p) {
+                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.numBlocks * TILE_W, h: TILE_H });
+            });
+            MOUNTAIN_BLOCKS.forEach(function(p) {
+                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.w, h: p.h });
+            });
+            getTriangleMountainPlatforms().forEach(function(p) {
+                list.push(p);
+            });
+            PIPE_XS.forEach(function(px) {
+                list.push({ x: px, y: GROUND_Y - PIPE_H, w: PIPE_W, h: 0 });
+            });
+            return list;
+        }
+
+        if (player.velocityY >= 0) {
+            var platforms = getPlatforms();
+            var onGround = false;
+            if (footY >= GROUND_Y) {
+                player.y = GROUND_Y;
+                player.velocityY = 0;
+                player.jumping = false;
+                onGround = true;
+            }
+            if (!onGround) {
+                platforms.forEach(function(plat) {
+                    var platTop = plat.y;
+                    if (right > plat.x && left < plat.x + plat.w && headY < platTop + (plat.h || 1) && footY >= platTop - 4 && footY <= platTop + 20) {
+                        player.y = platTop;
+                        player.velocityY = 0;
+                        player.jumping = false;
+                        onGround = true;
+                    }
+                });
+            }
+            if (!onGround) player.isAirborne = true;
+        } else {
+            player.isAirborne = true;
+        }
+        if (player.y < GROUND_Y) player.isAirborne = true;
+
+        PIPE_XS.forEach(function(px) {
+            var pipeLeft = px, pipeRight = px + PIPE_W;
+            if (right > pipeLeft && left < pipeRight) {
+                var pipeTop = GROUND_Y - PIPE_H;
+                if (footY > pipeTop && headY < GROUND_Y) {
+                    if (player.x + player.width * 0.5 < px + PIPE_W * 0.5) {
+                        player.x = px - player.width;
+                    } else {
+                        player.x = pipeRight;
+                    }
+                }
+            }
+        });
+
+        getTriangleMountainPlatforms().forEach(function(block) {
+            var blockLeft = block.x, blockRight = block.x + block.w;
+            var blockTop = block.y, blockBottom = block.y + block.h;
+            if (right > blockLeft && left < blockRight && headY < blockBottom && footY > blockTop) {
+                if (player.x + player.width * 0.5 < blockLeft + block.w * 0.5) {
+                    player.x = blockLeft - player.width;
+                } else {
+                    player.x = blockRight;
+                }
+            }
+        });
+
+        if (player.velocityY < 0) {
+            HEART_PLATFORMS.forEach(function(plat, i) {
+                if (questionBlockHit[i]) return;
+                var qx = plat.x + plat.heartIndex * TILE_W;
+                var blockTop = GROUND_Y + plat.yOff;
+                var blockBottom = blockTop + TILE_H;
+                if (headY <= blockBottom && headY >= blockBottom - 36 && right > qx && left < qx + TILE_W) {
+                    player.y = blockBottom + player.height + 2;
+                    player.velocityY = 0;
+                    questionBlockHit[i] = true;
+                    hearts[i].released = true;
+                    hearts[i].y = blockTop - HEART_H - 8;
+                }
+            });
+        }
+
         gameState.scrollOffset = Math.max(0, player.x - 200);
         gameState.animTime++;
     }
 
     function checkHeartCollision() {
         hearts.forEach(function(heart) {
-            if (heart.collected) return;
+            if (heart.collected || !heart.released) return;
             const dx = (player.x + player.width / 2) - (heart.x + heart.width / 2);
             const dy = (player.y - player.height / 2) - (heart.y + heart.height / 2);
             if (Math.abs(dx) < 28 && Math.abs(dy) < 32) {
@@ -568,7 +1016,13 @@
         drawSky();
         drawClouds();
         drawPipes();
+        drawFlagpole();
+        drawCastle();
+        drawMountainBlocks();
+        drawBrickPlatforms();
         drawGroundTiles();
+        drawTriangleMountain();
+        drawHeartPlatforms();
         drawHearts();
         if (gameState.running && !gameState.paused) {
             updatePlayer();
@@ -592,6 +1046,9 @@
         gameState.heartsCollected = 0;
         gameState.scrollOffset = 0;
         gameState.animTime = 0;
+        gameState.flagReached = false;
+        gameState.flagSliding = false;
+        gameState.flagY = 0;
         document.getElementById('heartCount').textContent = '0';
         player.x = 100;
         player.y = GROUND_Y;
@@ -615,7 +1072,21 @@
         handleJump();
     }, { passive: false });
     window.addEventListener('keydown', function(e) {
-        if (e.code === 'Space') { e.preventDefault(); handleJump(); }
+        if (e.code === 'Space') {
+            e.preventDefault();
+            var startEl = document.getElementById('startScreen');
+            var memoryEl = document.getElementById('memoryScreen');
+            var endEl = document.getElementById('endScreen');
+            if (!startEl.classList.contains('hidden') && !document.getElementById('startBtn').disabled) {
+                startGame();
+            } else if (!memoryEl.classList.contains('hidden')) {
+                closeMemory();
+            } else if (endEl && !endEl.classList.contains('hidden')) {
+                restartGame();
+            } else {
+                handleJump();
+            }
+        }
         if (e.code === 'ArrowLeft') { e.preventDefault(); keys.left = true; }
         if (e.code === 'ArrowRight') { e.preventDefault(); keys.right = true; }
     });
