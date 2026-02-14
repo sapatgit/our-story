@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maddy's Love Story Adventure 💕</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        html { overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+        .ui-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+        }
+        .heart-counter {
+            position: absolute;
+            top: 20px; left: 20px;
+            font-size: 16px;
+            color: #FF0000;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #FFF;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .screen-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: auto;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px;
+            animation: fadeIn 0.5s;
+        }
+        .screen-overlay.hidden { display: none; pointer-events: none; }
+        .screen-content {
+            max-width: 90%; max-height: 90vh; overflow-y: auto;
+            background: #FFF8DC;
+            border: 6px solid #000;
+            box-shadow: inset 0 0 0 3px #FFF, 0 0 0 6px #8B0000;
+            padding: 28px 24px;
+            image-rendering: pixelated;
+        }
+        .mario-title {
+            font-size: clamp(18px, 4vw, 28px);
+            color: #FFF;
+            margin-bottom: 24px;
+            text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 2px 2px 0 #000;
+            letter-spacing: 1px;
+        }
+        .mario-subtitle {
+            font-size: clamp(12px, 2.5vw, 18px);
+            color: #F7DC00;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000;
+        }
+        .screen-overlay h1 { font-size: clamp(20px, 3.5vw, 32px); color: #FFF; margin-bottom: 24px; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000; }
+        .screen-overlay h2 { font-size: clamp(14px, 2.5vw, 20px); color: #F7DC00; margin-bottom: 16px; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000; }
+        .screen-overlay p { font-size: 10px; color: #000; line-height: 1.8; margin-bottom: 16px; }
+        .memory-text {
+            font-size: 10px; color: #000; line-height: 1.9; margin: 16px 0;
+            max-height: 200px; overflow-y: auto;
+            background: #FFF;
+            padding: 16px;
+            border: 3px solid #000;
+            box-shadow: inset 0 0 0 1px #666;
+        }
+        .button {
+            background: #E52521;
+            border: 4px solid #000;
+            color: #FFF;
+            padding: 12px 24px;
+            font-size: 12px;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.15s;
+            box-shadow: 0 4px 0 #8B0000, 0 5px 0 #000;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .button:hover { transform: translateY(2px); box-shadow: 0 2px 0 #8B0000, 0 3px 0 #000; }
+        .button:active { transform: translateY(4px); box-shadow: 0 0 0 #8B0000, 0 1px 0 #000; }
+        .button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .start-screen h1 { font-size: clamp(22px, 5vw, 36px); margin-bottom: 28px; color: #FFF; text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000, 2px 2px 0 #8B0000; }
+        .intro-text { font-size: 10px; line-height: 2; margin: 24px 0; color: #000; }
+        .end-screen h1 { font-size: clamp(20px, 4vw, 28px); margin-bottom: 24px; color: #F7DC00; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000; }
+        .end-screen .final-message { font-size: 10px; color: #000; margin: 20px 0; font-style: italic; }
+        .journey-text { font-size: 10px; color: #000; margin: 16px 0; line-height: 2; }
+        .hearts-collected { font-size: clamp(24px, 6vw, 40px); color: #E52521; margin: 16px 0; text-shadow: 2px 2px 0 #000; }
+        #loadingText { font-size: 12px; color: #000; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="ui-container">
+        <div class="heart-counter">💕 Hearts: <span id="heartCount">0</span>/7</div>
+        <div class="instructions" id="instructions">ARROW keys to move, SPACE or TAP to jump!</div>
+    </div>
+    <div class="screen-overlay" id="startScreen">
+        <div class="screen-content">
+            <h1 class="start-screen">Maddy's Love Story<br>Adventure 💕</h1>
+            <div class="intro-text">
+                <p>Four years ago, we met as project partners in college.</p>
+                <p>We became inseparable best friends.</p>
+                <p>And now... you're the love of my life.</p>
+                <br>
+                <p>Collect 7 hearts across the level to relive our</p>
+                <p>beautiful memories together! 💕</p>
+            </div>
+            <p id="loadingText">Loading...</p>
+            <button class="button" id="startBtn" onclick="startGame()" disabled>START GAME ❤️</button>
+        </div>
+    </div>
+    <div class="screen-overlay hidden" id="memoryScreen">
+        <div class="screen-content">
+            <h2 id="memoryTitle"></h2>
+            <div class="memory-text" id="memoryText"></div>
+            <button class="button" onclick="closeMemory()">Continue ❤️</button>
+        </div>
+    </div>
+    <div class="screen-overlay hidden" id="endScreen">
+        <div class="screen-content">
+            <h1 class="end-screen">🎉 YOU DID IT! 🎉</h1>
+            <p>You collected all 7 hearts and unlocked our love story!</p>
+            <div class="hearts-collected">❤️ ❤️ ❤️ ❤️ ❤️ ❤️ ❤️</div>
+            <div class="journey-text">
+                <p>Strangers → Best Friends → The Love of My Life</p>
+                <br>
+                <p class="final-message">"Every moment with you is my favorite memory"</p>
+                <br>
+                <p>Happy Valentine's Day!</p>
+                <p>I love you! 💕</p>
+            </div>
+            <button class="button" onclick="restartGame()">PLAY AGAIN 🎮</button>
+        </div>
+    </div>
+
+    <script>
+(function() {
+    'use strict';
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ---- Sprites: Mario from [Super-Mario-Bros-1-1-in-Unity](https://github.com/Hammania689/Super-Mario-Bros-1-1-in-Unity); ground/heart generated. ----
+    // Mario sprite sheet frame rects (from Unity .meta, row y=341): [sx, sy, sw, sh].
+    const MARIO_SHEET_Y = 341;
+    const MARIO_RUN_FRAMES = [
+        [142, MARIO_SHEET_Y, 16, 16],
+        [161, MARIO_SHEET_Y, 13, 16],
+        [177, MARIO_SHEET_Y, 15, 16],
+        [195, MARIO_SHEET_Y, 11, 16]
+    ];
+    const MARIO_JUMP_FRAME = [239, MARIO_SHEET_Y, 16, 24];
+
+    var useFallbackCharacter = false;
+
+    function generateCharacterSheetFallback() {
+        var c = document.createElement('canvas');
+        c.width = 160;
+        c.height = 48;
+        var cctx = c.getContext('2d');
+        var capRed = '#E52521', skin = '#F8C898', overallBlue = '#0165B3', shoeBrown = '#8B4513', white = '#FFFFFF', black = '#000000';
+        for (var frame = 0; frame < 5; frame++) {
+            var ox = frame * 32, legOffset = frame % 2 === 0 ? 0 : 2;
+            cctx.fillStyle = capRed;
+            cctx.fillRect(ox + 4, 2, 24, 8);
+            cctx.fillRect(ox + 8, 0, 16, 4);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 4, 4, 10, 3);
+            cctx.fillRect(ox + 12, 2, 6, 5);
+            cctx.fillStyle = '#5C3317';
+            cctx.fillRect(ox + 20, 4, 8, 4);
+            cctx.fillStyle = skin;
+            cctx.fillRect(ox + 6, 10, 20, 14);
+            cctx.fillStyle = black;
+            cctx.fillRect(ox + 8, 12, 3, 3);
+            cctx.fillRect(ox + 19, 12, 3, 3);
+            cctx.fillRect(ox + 6, 18, 6, 2);
+            cctx.fillRect(ox + 20, 18, 6, 2);
+            cctx.fillStyle = capRed;
+            cctx.fillRect(ox + 6, 24, 20, 12);
+            cctx.fillStyle = overallBlue;
+            cctx.fillRect(ox + 8, 24, 16, 10);
+            cctx.fillRect(ox + 10, 24, 4, 12);
+            cctx.fillRect(ox + 18, 24, 4, 12);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 12, 26, 2, 2);
+            cctx.fillRect(ox + 18, 26, 2, 2);
+            cctx.fillStyle = skin;
+            cctx.fillRect(ox + 2, 26, 5, 10);
+            cctx.fillRect(ox + 25, 26, 5, 10);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 2, 34, 5, 5);
+            cctx.fillRect(ox + 25, 34, 5, 5);
+            cctx.fillStyle = overallBlue;
+            cctx.fillRect(ox + 6 + legOffset, 36, 8, 12);
+            cctx.fillRect(ox + 18 - legOffset, 36, 8, 12);
+            cctx.fillStyle = shoeBrown;
+            cctx.fillRect(ox + 6 + legOffset, 46, 8, 2);
+            cctx.fillRect(ox + 18 - legOffset, 46, 8, 2);
+        }
+        return c.toDataURL('image/png');
+    }
+
+    function generateGroundTile() {
+        const c = document.createElement('canvas');
+        c.width = 40;
+        c.height = 40;
+        const cctx = c.getContext('2d');
+        // Mario-style brick: orange-brown with dark outline and pits
+        cctx.fillStyle = '#C87838';
+        cctx.fillRect(0, 0, 40, 40);
+        cctx.strokeStyle = '#8B4513';
+        cctx.lineWidth = 2;
+        cctx.strokeRect(1, 1, 38, 38);
+        cctx.fillStyle = '#A06020';
+        cctx.fillRect(6, 6, 4, 4);
+        cctx.fillRect(30, 6, 4, 4);
+        cctx.fillRect(6, 30, 4, 4);
+        cctx.fillRect(30, 30, 4, 4);
+        return c.toDataURL('image/png');
+    }
+
+    function generateHeartSprite() {
+        const c = document.createElement('canvas');
+        c.width = 32;
+        c.height = 32;
+        const cctx = c.getContext('2d');
+        cctx.fillStyle = '#FF1493';
+        cctx.beginPath();
+        cctx.moveTo(16, 10);
+        cctx.bezierCurveTo(4, 4, 4, 14, 16, 26);
+        cctx.bezierCurveTo(28, 14, 28, 4, 16, 10);
+        cctx.fill();
+        cctx.fillStyle = 'rgba(255,255,255,0.5)';
+        cctx.beginPath();
+        cctx.arc(12, 12, 3, 0, Math.PI * 2);
+        cctx.fill();
+        return c.toDataURL('image/png');
+    }
+
+    // ---- Sprite loader: Mario, bricks (ground), tiles (clouds/pipes) from assets; heart generated ----
+    const sprites = { character: null, ground: null, tiles: null, heart: null };
+    var loadPending = 4;
+
+    function onSpriteLoad() {
+        loadPending--;
+        if (loadPending === 0) {
+            document.getElementById('loadingText').textContent = '';
+            document.getElementById('startBtn').disabled = false;
+        }
+    }
+
+    (function loadSprites() {
+        var mario = new Image();
+        mario.onload = function() { sprites.character = mario; useFallbackCharacter = false; onSpriteLoad(); };
+        mario.onerror = function() {
+            useFallbackCharacter = true;
+            var fallback = new Image();
+            fallback.onload = function() { sprites.character = fallback; onSpriteLoad(); };
+            fallback.src = generateCharacterSheetFallback();
+        };
+        mario.src = 'assets/mario.png';
+
+        var groundImg = new Image();
+        groundImg.onload = function() { sprites.ground = groundImg; onSpriteLoad(); };
+        groundImg.onerror = function() {
+            var fb = new Image();
+            fb.onload = function() { sprites.ground = fb; onSpriteLoad(); };
+            fb.src = generateGroundTile();
+        };
+        groundImg.src = 'assets/bricks.png';
+
+        var tilesImg = new Image();
+        tilesImg.onload = function() { sprites.tiles = tilesImg; onSpriteLoad(); };
+        tilesImg.onerror = function() { sprites.tiles = null; onSpriteLoad(); };
+        tilesImg.src = 'assets/tiles.png';
+
+        var heartImg = new Image();
+        heartImg.onload = function() { sprites.heart = heartImg; onSpriteLoad(); };
+        heartImg.src = generateHeartSprite();
+    })();
+
+    // ---- Constants ----
+    const GRAVITY = 0.6;
+    const JUMP_STRENGTH = -12;
+    const SCROLL_SPEED = 4;
+    const TILE_W = 40;
+    const TILE_H = 40;
+    const CHAR_DISPLAY_W = 32;
+    const CHAR_DISPLAY_H = 48;
+    const HEART_W = 32;
+    const HEART_H = 32;
+
+    let GROUND_Y;
+
+    const MEMORIES = [
+        { title: "College Days 📚", text: "Where it all began... Project group partners who became inseparable best friends for 4 amazing years! 📚✨" },
+        { title: "Our First Date 🥟", text: "Remember that beautiful day at the park by the lake? And those delicious momos at momo.i.am? 🥟💕" },
+        { title: "Pariah Night 🎵", text: "Your first time getting high with me... Steven Wilson's 'Pariah' playing... That magical connection we felt 🎵🌙" },
+        { title: "Lake Talks 🌅", text: "All those walks around college, deep conversations by the lake. Hours felt like minutes with you 🌅💭" },
+        { title: "Ooty Adventure 🏔️", text: "Our first trip together! Mountains, mist, and making memories that would last forever 🏔️❤️" },
+        { title: "Goa Beach Race 🏖️", text: "Racing on the beach just for fun, feeling free and alive. Pure joy in the simplest moments 🏖️🏃" },
+        { title: "Horror Movie Nights 🎬", text: "Our favorite thing - getting scared together during horror movies, holding each other close 🎬👻" }
+    ];
+
+    const HEART_POSITIONS = [
+        { x: 550 }, { x: 1200 }, { x: 1900 }, { x: 2650 }, { x: 3400 }, { x: 4200 }, { x: 5000 }
+    ];
+
+    let gameState = {
+        running: false,
+        paused: false,
+        heartsCollected: 0,
+        totalHearts: 7,
+        scrollOffset: 0,
+        animTime: 0
+    };
+
+    let player = {
+        x: 100,
+        y: 0,
+        width: CHAR_DISPLAY_W,
+        height: CHAR_DISPLAY_H,
+        velocityY: 0,
+        jumping: false,
+        isAirborne: false,
+        facing: 1
+    };
+
+    let hearts = [];
+    let gameLoopId = null;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        GROUND_Y = canvas.height - 80;
+        if (typeof player !== 'undefined' && player.y === 0) player.y = GROUND_Y;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', resizeCanvas);
+
+    function initHearts() {
+        hearts = HEART_POSITIONS.map(function(pos, i) {
+            const y = GROUND_Y - 120 - (i % 3) * 40;
+            return {
+                memoryId: i,
+                x: pos.x,
+                y: y,
+                width: HEART_W,
+                height: HEART_H,
+                collected: false,
+                angle: Math.random() * Math.PI * 2
+            };
+        });
+    }
+
+    function drawSky() {
+        const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        g.addColorStop(0, '#5C94E3');
+        g.addColorStop(1, '#B4D8F7');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawClouds() {
+        var t = sprites.tiles;
+        var scale = 2;
+        var basePos = [100, 500, 900, 1400, 2000, 2600, 3200, 3800, 4500];
+        if (t && t.complete) {
+            basePos.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.3;
+                var y = 60;
+                ctx.drawImage(t, 211, 69, 8, 24, x, y, 8 * scale, 24 * scale);
+                ctx.drawImage(t, 219, 69, 16, 24, x + 8 * scale, y, 16 * scale, 24 * scale);
+                ctx.drawImage(t, 219, 69, 16, 24, x + 24 * scale, y, 16 * scale, 24 * scale);
+                ctx.drawImage(t, 235, 69, 8, 24, x + 40 * scale, y, 8 * scale, 24 * scale);
+            });
+        } else {
+            ctx.fillStyle = '#FFFFFF';
+            basePos.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.3;
+                var y = 70;
+                ctx.beginPath();
+                ctx.arc(x, y + 5, 18, 0, Math.PI * 2);
+                ctx.arc(x + 22, y, 22, 0, Math.PI * 2);
+                ctx.arc(x + 48, y + 5, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(x - 8, y + 2, 72, 14);
+            });
+        }
+    }
+
+    function drawPipes() {
+        var t = sprites.tiles;
+        var pipeX = [400, 1200, 2000, 3000, 4000];
+        if (t && t.complete) {
+            var scale = 2;
+            pipeX.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.4;
+                if (x + 64 < 0 || x > canvas.width) return;
+                ctx.drawImage(t, 309, 417, 32, 16, x, GROUND_Y - 96, 32 * scale, 16 * scale);
+                ctx.drawImage(t, 309, 433, 32, 15, x, GROUND_Y - 64, 32 * scale, 15 * scale);
+                ctx.drawImage(t, 309, 433, 32, 15, x, GROUND_Y - 32, 32 * scale, 15 * scale);
+            });
+        } else {
+            ctx.fillStyle = '#00A800';
+            pipeX.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.4;
+                if (x + 56 < 0 || x > canvas.width) return;
+                ctx.fillRect(x, GROUND_Y - 96, 48, 96);
+                ctx.fillStyle = '#006000';
+                ctx.fillRect(x - 4, GROUND_Y - 102, 56, 10);
+                ctx.fillStyle = '#00A800';
+            });
+        }
+    }
+
+    function drawGroundTiles() {
+        if (!sprites.ground || !sprites.ground.complete) return;
+        var img = sprites.ground;
+        var sw = img.naturalWidth === 80 ? 16 : TILE_W;
+        var sh = img.naturalWidth === 80 ? 16 : TILE_H;
+        const startCol = Math.floor(gameState.scrollOffset / TILE_W);
+        const numCols = Math.ceil(canvas.width / TILE_W) + 2;
+        const rows = Math.ceil((canvas.height - GROUND_Y) / TILE_H) + 1;
+        for (let col = -1; col <= numCols; col++) {
+            for (let row = 0; row < rows; row++) {
+                const sx = (startCol + col) * TILE_W - gameState.scrollOffset;
+                const sy = GROUND_Y + row * TILE_H;
+                if (sx + TILE_W < 0 || sx > canvas.width) continue;
+                ctx.drawImage(img, 0, 0, sw, sh, sx, sy, TILE_W, TILE_H);
+            }
+        }
+    }
+
+    function drawHearts() {
+        if (!sprites.heart || !sprites.heart.complete) return;
+        hearts.forEach(function(heart) {
+            if (heart.collected) return;
+            const x = heart.x - gameState.scrollOffset;
+            if (x + HEART_W < 0 || x > canvas.width) return;
+            heart.angle += 0.05;
+            const scale = 1 + Math.sin(heart.angle) * 0.12;
+            ctx.save();
+            ctx.translate(x + HEART_W / 2, heart.y + HEART_H / 2);
+            ctx.scale(scale, scale);
+            ctx.drawImage(sprites.heart, -HEART_W / 2, -HEART_H / 2, HEART_W, HEART_H);
+            ctx.restore();
+        });
+    }
+
+    function drawPlayer() {
+        if (!sprites.character || !sprites.character.complete) return;
+        const screenX = player.x - gameState.scrollOffset;
+        if (screenX + CHAR_DISPLAY_W < 0 || screenX > canvas.width) return;
+        var r, dw, dh, dy, img = sprites.character;
+        var flip = player.facing === -1;
+        if (useFallbackCharacter) {
+            var frame = player.isAirborne ? 4 : Math.floor(gameState.animTime / 8) % 4;
+            var w = 32, h = 48;
+            if (flip) ctx.drawImage(img, frame * 32, 0, w, h, screenX + w, player.y - h, -w, h);
+            else ctx.drawImage(img, frame * 32, 0, w, h, screenX, player.y - h, w, h);
+            return;
+        }
+        if (player.isAirborne) {
+            r = MARIO_JUMP_FRAME;
+            dw = CHAR_DISPLAY_W;
+            dh = CHAR_DISPLAY_H;
+            dy = player.y - CHAR_DISPLAY_H;
+        } else {
+            r = MARIO_RUN_FRAMES[Math.floor(gameState.animTime / 8) % MARIO_RUN_FRAMES.length];
+            dw = CHAR_DISPLAY_W;
+            dh = r[3] * (CHAR_DISPLAY_W / r[2]);
+            dy = player.y - dh;
+        }
+        var sy = img.naturalHeight - r[1] - r[3];
+        if (flip) ctx.drawImage(img, r[0], sy, r[2], r[3], screenX + dw, dy, -dw, dh);
+        else ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+    }
+
+    var keys = { left: false, right: false };
+
+    function updatePlayer() {
+        if (keys.right) { player.x += SCROLL_SPEED; player.facing = 1; }
+        if (keys.left) { player.x -= SCROLL_SPEED; player.facing = -1; }
+        player.x = Math.max(100, player.x);
+        player.velocityY += GRAVITY;
+        player.y += player.velocityY;
+        player.isAirborne = player.y < GROUND_Y;
+        if (player.y >= GROUND_Y) {
+            player.y = GROUND_Y;
+            player.velocityY = 0;
+            player.jumping = false;
+        }
+        gameState.scrollOffset = Math.max(0, player.x - 200);
+        gameState.animTime++;
+    }
+
+    function checkHeartCollision() {
+        hearts.forEach(function(heart) {
+            if (heart.collected) return;
+            const dx = (player.x + player.width / 2) - (heart.x + heart.width / 2);
+            const dy = (player.y - player.height / 2) - (heart.y + heart.height / 2);
+            if (Math.abs(dx) < 28 && Math.abs(dy) < 32) {
+                heart.collected = true;
+                gameState.heartsCollected++;
+                document.getElementById('heartCount').textContent = gameState.heartsCollected;
+                showMemory(heart.memoryId);
+                gameState.paused = true;
+                document.getElementById('instructions').style.display = 'none';
+            }
+        });
+    }
+
+    function showMemory(memoryId) {
+        const m = MEMORIES[memoryId];
+        document.getElementById('memoryTitle').textContent = m.title;
+        document.getElementById('memoryText').textContent = m.text;
+        document.getElementById('memoryScreen').classList.remove('hidden');
+    }
+
+    function closeMemory() {
+        document.getElementById('memoryScreen').classList.add('hidden');
+        gameState.paused = false;
+        document.getElementById('instructions').style.display = 'block';
+        if (gameState.heartsCollected >= 7) {
+            gameState.running = false;
+            document.getElementById('endScreen').classList.remove('hidden');
+        }
+    }
+
+    function gameLoop() {
+        drawSky();
+        drawClouds();
+        drawPipes();
+        drawGroundTiles();
+        drawHearts();
+        if (gameState.running && !gameState.paused) {
+            updatePlayer();
+            checkHeartCollision();
+        }
+        drawPlayer();
+        if (gameState.running) gameLoopId = requestAnimationFrame(gameLoop);
+        else gameLoopId = null;
+    }
+
+    function handleJump() {
+        if (player.jumping || gameState.paused || !gameState.running) return;
+        player.velocityY = JUMP_STRENGTH;
+        player.jumping = true;
+    }
+
+    window.startGame = function() {
+        document.getElementById('startScreen').classList.add('hidden');
+        gameState.running = true;
+        gameState.paused = false;
+        gameState.heartsCollected = 0;
+        gameState.scrollOffset = 0;
+        gameState.animTime = 0;
+        document.getElementById('heartCount').textContent = '0';
+        player.x = 100;
+        player.y = GROUND_Y;
+        player.velocityY = 0;
+        player.jumping = false;
+        initHearts();
+        document.getElementById('instructions').style.display = 'block';
+        gameLoop();
+    };
+
+    window.closeMemory = closeMemory;
+
+    window.restartGame = function() {
+        document.getElementById('endScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+    };
+
+    canvas.addEventListener('click', handleJump);
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleJump();
+    }, { passive: false });
+    window.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') { e.preventDefault(); handleJump(); }
+        if (e.code === 'ArrowLeft') { e.preventDefault(); keys.left = true; }
+        if (e.code === 'ArrowRight') { e.preventDefault(); keys.right = true; }
+    });
+    window.addEventListener('keyup', function(e) {
+        if (e.code === 'ArrowLeft') keys.left = false;
+        if (e.code === 'ArrowRight') keys.right = false;
+    });
+})();
+    </script>
+</body>
+</html>

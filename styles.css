@@ -1,0 +1,239 @@
+html {
+    overflow: hidden;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', cursive;
+    overflow: hidden;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+}
+
+.ui-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.heart-counter {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 16px;
+    color: #FF0000;
+    z-index: 100;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.level-indicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 14px;
+    color: #FFD700;
+    z-index: 100;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #FFF;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-align: center;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes heartGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 20, 147, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 20, 147, 1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: auto;
+    flex-direction: column;
+    text-align: center;
+    padding: 40px;
+    animation: fadeIn 0.5s;
+}
+
+.screen-overlay.hidden {
+    display: none;
+    pointer-events: none;
+}
+
+.screen-content {
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.screen-overlay h1 {
+    font-size: 32px;
+    color: #FF1493;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px rgba(255, 20, 147, 0.8);
+}
+
+.screen-overlay h2 {
+    font-size: 20px;
+    color: #FFD700;
+    margin-bottom: 20px;
+}
+
+.screen-overlay p {
+    font-size: 12px;
+    color: #FFF;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.memory-text {
+    font-size: 11px;
+    color: #E0E0E0;
+    line-height: 1.8;
+    margin: 20px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-left: 4px solid #FF1493;
+    border-radius: 5px;
+}
+
+.button {
+    background: linear-gradient(to bottom, #FF1493, #FF69B4);
+    border: 3px solid #FFF;
+    color: #FFF;
+    padding: 12px 30px;
+    font-size: 14px;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 #CC0099;
+    text-transform: uppercase;
+}
+
+.button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #CC0099;
+}
+
+.button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #CC0099;
+}
+
+.start-screen h1 {
+    font-size: 40px;
+    margin-bottom: 40px;
+}
+
+.intro-text {
+    font-size: 13px;
+    line-height: 2;
+    margin: 40px 0;
+}
+
+.end-screen h1 {
+    font-size: 36px;
+    margin-bottom: 30px;
+}
+
+.end-screen .final-message {
+    font-size: 14px;
+    color: #FFD700;
+    margin: 30px 0;
+    font-style: italic;
+}
+
+.journey-text {
+    font-size: 12px;
+    color: #FFB6C1;
+    margin: 20px 0;
+    line-height: 2;
+}
+
+.hearts-collected {
+    font-size: 48px;
+    color: #FF1493;
+    margin: 20px 0;
+    text-shadow: 0 0 20px rgba(255, 20, 147, 0.8);
+}
+
+.level-title {
+    font-size: 24px;
+    color: #FFD700;
+    margin: 30px 0;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.level-screen p {
+    font-size: 12px;
+    margin: 15px 0;
+}
+
+::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent;
+}
