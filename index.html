@@ -377,18 +377,9 @@
         { x: 3120, yOff: -158, numBlocks: 5, heartIndex: 2 },
         { x: 4320, yOff: -178, numBlocks: 5, heartIndex: 2 },
         { x: 5520, yOff: -148, numBlocks: 5, heartIndex: 2 },
-        { x: 6820, yOff: -168, numBlocks: 5, heartIndex: 2 },
-        { x: 8120, yOff: -158, numBlocks: 5, heartIndex: 2 }
+        { x: 6820, yOff: -118, numBlocks: 5, heartIndex: 2 },
+        { x: 8120, yOff: -108, numBlocks: 5, heartIndex: 2 }
     ];
-    // Mountain steps to cross (hill; with gaps between sections)
-    const MOUNTAIN_BLOCKS = [
-        { x: 2550, yOff: -40, w: 80, h: 40 },
-        { x: 2650, yOff: -80, w: 80, h: 40 },
-        { x: 2750, yOff: -120, w: 80, h: 40 },
-        { x: 2850, yOff: -80, w: 80, h: 40 },
-        { x: 2950, yOff: -40, w: 80, h: 40 }
-    ];
-
     // End of level: triangular mountain (ground blocks), then flagpole, then castle
     const TRIANGLE_MOUNTAIN_LEFT = 8600;
     const TRIANGLE_MOUNTAIN_BASE_BLOCKS = 11;
@@ -398,10 +389,10 @@
     const FLAG_DISPLAY_W = 56;
     const FLAG_DISPLAY_H = 44;
     const CASTLE_X = 9000;
-    const CASTLE_W = 320;
-    const CASTLE_H = 300;
-    // tiles.png (411x949): castles bottom, flagpoles row above. Pipes: green rim/body.
-    const TILES_CASTLE = { sx: 0, sy: 760, sw: 205, sh: 189 };
+    const CASTLE_W = 560;
+    const CASTLE_H = 500;
+    // tiles.png (411x949): castle at bottom; crop from below flagpole bases to avoid flag on top
+    const TILES_CASTLE = { sx: 0, sy: 808, sw: 205, sh: 141 };
     const TILES_FLAGPOLE_POLE = { sx: 10, sy: 675, sw: 24, sh: 135 };
     const TILES_FLAGPOLE_FLAG = { sx: 38, sy: 675, sw: 40, sh: 28 };
     const TILES_FLAGPOLE_BASE = { sx: 0, sy: 780, sw: 102, sh: 30 };
@@ -705,35 +696,11 @@
             ctx.fillRect(x, poleTop, poleW, FLAGPOLE_H);
             ctx.fillStyle = '#808080';
             ctx.strokeRect(x, poleTop, poleW, FLAGPOLE_H);
-            ctx.fillStyle = '#E52521';
-            ctx.fillRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
-            ctx.fillStyle = '#8B0000';
-            ctx.strokeRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
         }
-    }
-
-    function drawMountainBlocks() {
-        var img = sprites.ground;
-        MOUNTAIN_BLOCKS.forEach(function(p) {
-            var x = p.x - gameState.scrollOffset;
-            if (x + p.w < 0 || x > canvas.width) return;
-            var y = GROUND_Y + p.yOff;
-            if (!img || !img.complete) {
-                ctx.fillStyle = '#8B7355';
-                ctx.fillRect(x, y, p.w, p.h);
-                ctx.strokeStyle = '#5C4033';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, p.w, p.h);
-            } else {
-                var tw = TILE_W, th = TILE_H;
-                var sw = img.naturalWidth === 80 ? 16 : tw, sh = img.naturalWidth === 80 ? 16 : th;
-                for (var cx = 0; cx < p.w; cx += tw) {
-                    for (var cy = 0; cy < p.h; cy += th) {
-                        ctx.drawImage(img, 0, 0, sw, sh, x + cx, y + cy, tw, th);
-                    }
-                }
-            }
-        });
+        ctx.fillStyle = '#E52521';
+        ctx.fillRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
+        ctx.fillStyle = '#8B0000';
+        ctx.strokeRect(x + poleW, flagY, FLAG_DISPLAY_W, FLAG_DISPLAY_H);
     }
 
     function drawGroundTiles() {
@@ -780,7 +747,7 @@
         var r, dw, dh, dy, img = sprites.character;
         var faceRight = player.facing === 1;
         if (useFallbackCharacter) {
-            var frame = player.isAirborne ? 4 : Math.floor(gameState.animTime / 8) % 4;
+            var frame = Math.floor(gameState.animTime / 8) % 4;
             var w = 32, h = 48;
             var drawY = player.y - h;
             if (faceRight) {
@@ -795,17 +762,10 @@
             }
             return;
         }
-        if (player.isAirborne) {
-            r = MARIO_JUMP_FRAME;
-            dw = CHAR_DISPLAY_W;
-            dh = CHAR_DISPLAY_H;
-            dy = player.y - CHAR_DISPLAY_H;
-        } else {
-            r = MARIO_RUN_FRAMES[Math.floor(gameState.animTime / 8) % MARIO_RUN_FRAMES.length];
-            dw = CHAR_DISPLAY_W;
-            dh = r[3] * (CHAR_DISPLAY_W / r[2]);
-            dy = player.y - dh;
-        }
+        r = MARIO_RUN_FRAMES[Math.floor(gameState.animTime / 8) % MARIO_RUN_FRAMES.length];
+        dw = CHAR_DISPLAY_W;
+        dh = r[3] * (CHAR_DISPLAY_W / r[2]);
+        dy = player.y - dh;
         var sy = img.naturalHeight - r[1] - r[3];
         if (faceRight) {
             ctx.save();
@@ -895,9 +855,6 @@
             HEART_PLATFORMS.forEach(function(p) {
                 list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.numBlocks * TILE_W, h: TILE_H });
             });
-            MOUNTAIN_BLOCKS.forEach(function(p) {
-                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.w, h: p.h });
-            });
             getTriangleMountainPlatforms().forEach(function(p) {
                 list.push(p);
             });
@@ -950,7 +907,9 @@
         getTriangleMountainPlatforms().forEach(function(block) {
             var blockLeft = block.x, blockRight = block.x + block.w;
             var blockTop = block.y, blockBottom = block.y + block.h;
-            if (right > blockLeft && left < blockRight && headY < blockBottom && footY > blockTop) {
+            var overlapping = right > blockLeft && left < blockRight && headY < blockBottom && footY > blockTop;
+            var standingOnBlock = footY >= blockTop - 4 && footY <= blockTop + 20;
+            if (overlapping && !standingOnBlock) {
                 if (player.x + player.width * 0.5 < blockLeft + block.w * 0.5) {
                     player.x = blockLeft - player.width;
                 } else {
@@ -1016,9 +975,7 @@
         drawSky();
         drawClouds();
         drawPipes();
-        drawFlagpole();
         drawCastle();
-        drawMountainBlocks();
         drawBrickPlatforms();
         drawGroundTiles();
         drawTriangleMountain();
@@ -1029,6 +986,7 @@
             checkHeartCollision();
         }
         drawPlayer();
+        drawFlagpole();
         if (gameState.running) gameLoopId = requestAnimationFrame(gameLoop);
         else gameLoopId = null;
     }
