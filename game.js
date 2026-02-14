@@ -10,7 +10,7 @@ const LEVELS = [
         id: 0,
         title: "College Days 📚",
         subtitle: "Where It All Began",
-        description: "Project group partners who became inseparable best friends for 4 amazing years! From late-night assignments to endless conversations, you were someone special. 📚✨",
+        description: "Project group partners who became inseparable best friends! From late-night assignments to endless conversations, you were someone special. 📚✨",
         difficulty: "Easy",
         theme: 'college',
         hazardCount: 0

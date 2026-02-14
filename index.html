@@ -371,14 +371,16 @@
     ];
 
     // Platform strips with heart block in middle (----^--): x, yOff, numBlocks (40px each), index of ? block
+    // Max jump ~114px; heart released 40px above platform; player center needs to be within 32px of heart center
+    // Safe yOff range: roughly -82 to -146
     const HEART_PLATFORMS = [
-        { x: 670, yOff: -148, numBlocks: 5, heartIndex: 2 },
-        { x: 1870, yOff: -168, numBlocks: 5, heartIndex: 2 },
-        { x: 3120, yOff: -158, numBlocks: 5, heartIndex: 2 },
-        { x: 4320, yOff: -178, numBlocks: 5, heartIndex: 2 },
-        { x: 5520, yOff: -148, numBlocks: 5, heartIndex: 2 },
-        { x: 6820, yOff: -118, numBlocks: 5, heartIndex: 2 },
-        { x: 8120, yOff: -108, numBlocks: 5, heartIndex: 2 }
+        { x: 670, yOff: -108, numBlocks: 5, heartIndex: 2 },
+        { x: 1870, yOff: -118, numBlocks: 5, heartIndex: 2 },
+        { x: 3120, yOff: -126, numBlocks: 5, heartIndex: 2 },
+        { x: 4320, yOff: -134, numBlocks: 5, heartIndex: 2 },
+        { x: 5520, yOff: -140, numBlocks: 5, heartIndex: 2 },
+        { x: 6820, yOff: -130, numBlocks: 5, heartIndex: 2 },
+        { x: 8120, yOff: -118, numBlocks: 5, heartIndex: 2 }
     ];
     // End of level: triangular mountain (ground blocks), then flagpole, then castle
     const TRIANGLE_MOUNTAIN_LEFT = 8600;
@@ -414,8 +416,12 @@
         animTime: 0,
         flagReached: false,
         flagSliding: false,
-        flagY: 0
+        flagY: 0,
+        fireworksActive: false,
+        fireworkTimer: 0
     };
+
+    var fireworks = []; // particle array
 
     let player = {
         x: 100,
@@ -706,6 +712,70 @@
         }
     }
 
+    function spawnFireworkBurst() {
+        // Burst origin above the castle (world coords)
+        var cx = CASTLE_X + CASTLE_W * (0.2 + Math.random() * 0.6);
+        var cy = GROUND_Y - CASTLE_H - 40 - Math.random() * 200;
+        var count = 30 + Math.floor(Math.random() * 25);
+        var hue = Math.floor(Math.random() * 360);
+        for (var i = 0; i < count; i++) {
+            var angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.4;
+            var speed = 2 + Math.random() * 4;
+            fireworks.push({
+                x: cx,
+                y: cy,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 60 + Math.floor(Math.random() * 40),
+                maxLife: 100,
+                size: 2 + Math.random() * 2,
+                hue: hue + Math.floor(Math.random() * 40 - 20),
+                bright: 1
+            });
+        }
+    }
+
+    function updateFireworks() {
+        if (!gameState.fireworksActive) return;
+        gameState.fireworkTimer++;
+        // Spawn a new burst every ~30 frames
+        if (gameState.fireworkTimer % 30 === 0 || gameState.fireworkTimer === 1) {
+            spawnFireworkBurst();
+        }
+        for (var i = fireworks.length - 1; i >= 0; i--) {
+            var p = fireworks[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.06; // gravity
+            p.vx *= 0.98; // drag
+            p.vy *= 0.98;
+            p.life--;
+            p.bright = Math.max(0, p.life / p.maxLife);
+            if (p.life <= 0) fireworks.splice(i, 1);
+        }
+    }
+
+    function drawFireworks() {
+        if (fireworks.length === 0) return;
+        for (var i = 0; i < fireworks.length; i++) {
+            var p = fireworks[i];
+            var sx = p.x - gameState.scrollOffset;
+            if (sx < -20 || sx > canvas.width + 20) continue;
+            var alpha = p.bright * 0.9 + 0.1;
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = 'hsl(' + p.hue + ',100%,' + Math.round(50 + p.bright * 30) + '%)';
+            ctx.beginPath();
+            ctx.arc(sx, p.y, p.size * p.bright, 0, Math.PI * 2);
+            ctx.fill();
+            // glow trail
+            ctx.globalAlpha = alpha * 0.3;
+            ctx.beginPath();
+            ctx.arc(sx, p.y, p.size * p.bright * 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+
     function drawGroundTiles() {
         if (!sprites.ground || !sprites.ground.complete) return;
         var img = sprites.ground;
@@ -812,6 +882,8 @@
             gameState.flagReached = true;
             gameState.flagSliding = true;
             gameState.flagY = poleTopY;
+            gameState.fireworksActive = true;
+            gameState.fireworkTimer = 0;
             player.x = FLAGPOLE_X - 6;
             player.velocityY = 0;
             gameState.scrollOffset = Math.max(0, player.x - 200);
@@ -986,9 +1058,11 @@
             updatePlayer();
             checkHeartCollision();
         }
+        updateFireworks();
         drawPlayer();
         drawFlagpole();
-        if (gameState.running) gameLoopId = requestAnimationFrame(gameLoop);
+        drawFireworks();
+        if (gameState.running || gameState.fireworksActive) gameLoopId = requestAnimationFrame(gameLoop);
         else gameLoopId = null;
     }
 
@@ -1008,6 +1082,9 @@
         gameState.flagReached = false;
         gameState.flagSliding = false;
         gameState.flagY = 0;
+        gameState.fireworksActive = false;
+        gameState.fireworkTimer = 0;
+        fireworks = [];
         document.getElementById('heartCount').textContent = '0';
         player.x = 100;
         player.y = GROUND_Y;
