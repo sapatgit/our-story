@@ -255,40 +255,68 @@
     }
 
     function generateHeartSprite() {
-        const size = 16;
-        const c = document.createElement('canvas');
-        c.width = size;
-        c.height = size;
-        const cctx = c.getContext('2d');
-        const red = '#E52521';
-        const dark = '#8B0000';
-        const highlight = '#FF6B6B';
-        const px = function(x, y) { cctx.fillRect(x, y, 1, 1); };
-        cctx.fillStyle = dark;
-        px(2, 2); px(3, 2); px(4, 2); px(5, 2); px(6, 2); px(7, 2); px(8, 2); px(9, 2); px(10, 2); px(11, 2); px(12, 2); px(13, 2);
-        px(1, 3); px(2, 3); px(3, 3); px(4, 3); px(5, 3); px(6, 3); px(7, 3); px(8, 3); px(9, 3); px(10, 3); px(11, 3); px(12, 3); px(13, 3); px(14, 3);
-        px(0, 4); px(1, 4); px(2, 4); px(3, 4); px(4, 4); px(5, 4); px(6, 4); px(7, 4); px(8, 4); px(9, 4); px(10, 4); px(11, 4); px(12, 4); px(13, 4); px(14, 4); px(15, 4);
-        px(0, 5); px(1, 5); px(2, 5); px(3, 5); px(4, 5); px(5, 5); px(6, 5); px(7, 5); px(8, 5); px(9, 5); px(10, 5); px(11, 5); px(12, 5); px(13, 5); px(14, 5); px(15, 5);
-        px(0, 6); px(1, 6); px(2, 6); px(3, 6); px(4, 6); px(5, 6); px(6, 6); px(7, 6); px(8, 6); px(9, 6); px(10, 6); px(11, 6); px(12, 6); px(13, 6); px(14, 6); px(15, 6);
-        px(1, 7); px(2, 7); px(3, 7); px(4, 7); px(5, 7); px(6, 7); px(7, 7); px(8, 7); px(9, 7); px(10, 7); px(11, 7); px(12, 7); px(13, 7); px(14, 7);
-        px(2, 8); px(3, 8); px(4, 8); px(5, 8); px(6, 8); px(7, 8); px(8, 8); px(9, 8); px(10, 8); px(11, 8); px(12, 8); px(13, 8);
-        px(3, 9); px(4, 9); px(5, 9); px(6, 9); px(7, 9); px(8, 9); px(9, 9); px(10, 9); px(11, 9); px(12, 9);
-        px(4, 10); px(5, 10); px(6, 10); px(7, 10); px(8, 10); px(9, 10); px(10, 10); px(11, 10);
-        px(5, 11); px(6, 11); px(7, 11); px(8, 11); px(9, 11); px(10, 11);
-        px(6, 12); px(7, 12); px(8, 12); px(9, 12);
-        px(7, 13); px(8, 13);
-        cctx.fillStyle = red;
-        px(4, 3); px(5, 3); px(6, 3); px(7, 3); px(8, 3); px(9, 3); px(10, 3); px(11, 3);
-        px(2, 4); px(3, 4); px(4, 4); px(5, 4); px(6, 4); px(7, 4); px(8, 4); px(9, 4); px(10, 4); px(11, 4); px(12, 4); px(13, 4);
-        px(2, 5); px(3, 5); px(4, 5); px(5, 5); px(6, 5); px(7, 5); px(8, 5); px(9, 5); px(10, 5); px(11, 5); px(12, 5); px(13, 5);
-        px(3, 6); px(4, 6); px(5, 6); px(6, 6); px(7, 6); px(8, 6); px(9, 6); px(10, 6); px(11, 6); px(12, 6); px(13, 6);
-        px(4, 7); px(5, 7); px(6, 7); px(7, 7); px(8, 7); px(9, 7); px(10, 7); px(11, 7); px(12, 7);
-        px(5, 8); px(6, 8); px(7, 8); px(8, 8); px(9, 8); px(10, 8); px(11, 8);
-        px(6, 9); px(7, 9); px(8, 9); px(9, 9); px(10, 9);
-        px(7, 10); px(8, 10); px(9, 10);
-        px(7, 11); px(8, 11);
-        cctx.fillStyle = highlight;
-        px(5, 4); px(6, 4); px(5, 5); px(6, 5);
+        // 13x12 pixel-art heart, drawn on a 13x12 canvas (scaled up at draw time)
+        var w = 13, h = 12;
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var cctx = c.getContext('2d');
+        var px = function(x, y) { cctx.fillRect(x, y, 1, 1); };
+
+        //  outline (black)
+        cctx.fillStyle = '#000';
+        // row 0:   ##  ##
+        px(1,0);px(2,0);px(3,0);               px(9,0);px(10,0);px(11,0);
+        // row 1:  #    # #    #
+        px(0,1);                px(4,1); px(8,1);                px(12,1);
+        // row 2:  #          #
+        px(0,2);                                                  px(12,2);
+        // row 3:  #          #
+        px(0,3);                                                  px(12,3);
+        // row 4:   #        #
+        px(1,4);                                                px(11,4);
+        // row 5:    #      #
+        px(2,5);                                          px(10,5);
+        // row 6:     #    #
+        px(3,6);                                    px(9,6);
+        // row 7:      #  #
+        px(4,7);                              px(8,7);
+        // row 8:       ##
+        px(5,8);                        px(7,8);
+        // row 9:        #
+        px(6,9);
+
+        // main red fill
+        cctx.fillStyle = '#E52521';
+        // row 1
+        px(1,1);px(2,1);px(3,1);  px(9,1);px(10,1);px(11,1);
+        // row 2
+        px(1,2);px(2,2);px(3,2);px(4,2);px(5,2);px(6,2);px(7,2);px(8,2);px(9,2);px(10,2);px(11,2);
+        // row 3
+        px(1,3);px(2,3);px(3,3);px(4,3);px(5,3);px(6,3);px(7,3);px(8,3);px(9,3);px(10,3);px(11,3);
+        // row 4
+        px(2,4);px(3,4);px(4,4);px(5,4);px(6,4);px(7,4);px(8,4);px(9,4);px(10,4);
+        // row 5
+        px(3,5);px(4,5);px(5,5);px(6,5);px(7,5);px(8,5);px(9,5);
+        // row 6
+        px(4,6);px(5,6);px(6,6);px(7,6);px(8,6);
+        // row 7
+        px(5,7);px(6,7);px(7,7);
+        // row 8
+        px(6,8);
+
+        // dark red shadow (bottom-right inner edge)
+        cctx.fillStyle = '#A01010';
+        px(10,3);px(11,3);  px(9,4);px(10,4);  px(8,5);px(9,5);  px(7,6);px(8,6);  px(7,7);
+
+        // highlight (top-left lobes)
+        cctx.fillStyle = '#FF6B6B';
+        px(2,1);px(3,1);  px(10,1);px(11,1);
+        px(1,2);px(2,2);  px(10,2);px(11,2);
+
+        // white specular
+        cctx.fillStyle = '#FFC0C0';
+        px(2,1); px(10,1);
+
         return c.toDataURL('image/png');
     }
 
@@ -796,21 +824,48 @@
 
     function drawHearts() {
         if (!sprites.heart || !sprites.heart.complete) return;
-        var smooth = ctx.imageSmoothingEnabled;
-        ctx.imageSmoothingEnabled = false;
+        var img = sprites.heart;
+        var sw = img.naturalWidth || 13;
+        var sh = img.naturalHeight || 12;
+        var displayW = 39; // 13 * 3 — crisp integer scale
+        var displayH = 36; // 12 * 3
         hearts.forEach(function(heart) {
             if (heart.collected || !heart.released) return;
-            const x = heart.x - gameState.scrollOffset;
-            if (x + HEART_W < 0 || x > canvas.width) return;
-            heart.angle += 0.05;
-            const scale = 1 + Math.sin(heart.angle) * 0.12;
+            var x = heart.x - gameState.scrollOffset;
+            if (x + displayW < 0 || x > canvas.width) return;
+
+            // heartbeat rhythm: quick double-thump then pause
+            heart.angle += 0.08;
+            var t = heart.angle % (Math.PI * 2);
+            var beat = 0;
+            if (t < 0.5) beat = Math.sin(t * Math.PI / 0.5) * 0.22;
+            else if (t < 1.2) beat = Math.sin((t - 0.5) * Math.PI / 0.7) * 0.13;
+            var scale = 1 + beat;
+
+            var cx = x + HEART_W / 2;
+            var cy = heart.y + HEART_H / 2;
+
+            // pulsing glow
+            var glowR = 24 * (1 + beat * 2);
+            var glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, glowR);
+            glow.addColorStop(0, 'rgba(255,50,80,0.3)');
+            glow.addColorStop(0.6, 'rgba(255,50,80,0.1)');
+            glow.addColorStop(1, 'rgba(255,50,80,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // pixel-perfect heart sprite
+            var smooth = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
             ctx.save();
-            ctx.translate(x + HEART_W / 2, heart.y + HEART_H / 2);
+            ctx.translate(cx, cy);
             ctx.scale(scale, scale);
-            ctx.drawImage(sprites.heart, 0, 0, 16, 16, -HEART_W / 2, -HEART_H / 2, HEART_W, HEART_H);
+            ctx.drawImage(img, 0, 0, sw, sh, -displayW / 2, -displayH / 2, displayW, displayH);
             ctx.restore();
+            ctx.imageSmoothingEnabled = smooth;
         });
-        ctx.imageSmoothingEnabled = smooth;
     }
 
     function drawPlayer() {
