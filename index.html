@@ -47,6 +47,10 @@
             text-align: center;
             animation: pulse 1s infinite;
         }
+        /* Push instructions above touch controls on mobile */
+        @media (hover: none) and (pointer: coarse) {
+            .instructions { bottom: 100px; font-size: 10px; }
+        }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .screen-overlay {
@@ -120,13 +124,76 @@
         .journey-text { font-size: 10px; color: #000; margin: 16px 0; line-height: 2; }
         .hearts-collected { font-size: clamp(24px, 6vw, 40px); color: #E52521; margin: 16px 0; text-shadow: 2px 2px 0 #000; }
         #loadingText { font-size: 12px; color: #000; margin-top: 16px; }
+
+        /* Mobile touch controls */
+        .touch-controls {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 16px 20px;
+            z-index: 500;
+            pointer-events: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
+        .touch-controls .dpad {
+            display: flex;
+            gap: 12px;
+        }
+        .touch-btn {
+            pointer-events: auto;
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            border: 3px solid rgba(255,255,255,0.5);
+            background: rgba(0,0,0,0.35);
+            color: #FFF;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .touch-btn:active, .touch-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.8);
+        }
+        .touch-btn-jump {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-family: 'Press Start 2P', cursive;
+            background: rgba(229,37,33,0.45);
+            border-color: rgba(229,37,33,0.7);
+        }
+        .touch-btn-jump:active, .touch-btn-jump.active {
+            background: rgba(229,37,33,0.65);
+            border-color: rgba(255,100,100,0.9);
+        }
+        /* Hide touch controls on devices that have a fine pointer (mouse) */
+        @media (hover: hover) and (pointer: fine) {
+            .touch-controls { display: none; }
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
     <div class="ui-container">
         <div class="heart-counter">💕 Hearts: <span id="heartCount">0</span>/7</div>
-        <div class="instructions" id="instructions">ARROW keys to move, SPACE or TAP to jump!</div>
+        <div class="instructions" id="instructions">Use ARROWS to move, SPACE / TAP to jump!</div>
+    </div>
+    <!-- Mobile touch controls -->
+    <div class="touch-controls" id="touchControls">
+        <div class="dpad">
+            <button class="touch-btn" id="btnLeft" aria-label="Move left">&#9664;</button>
+            <button class="touch-btn" id="btnRight" aria-label="Move right">&#9654;</button>
+        </div>
+        <button class="touch-btn touch-btn-jump" id="btnJump" aria-label="Jump">JUMP</button>
     </div>
     <div class="screen-overlay" id="startScreen">
         <div class="screen-content">
@@ -1158,10 +1225,57 @@
     };
 
     canvas.addEventListener('click', handleJump);
+
+    // Gate canvas touchstart so it doesn't fire jump when a touch-control button is tapped
     canvas.addEventListener('touchstart', function(e) {
+        var target = e.target;
+        if (target && (target.id === 'btnLeft' || target.id === 'btnRight' || target.id === 'btnJump')) return;
         e.preventDefault();
         handleJump();
     }, { passive: false });
+
+    // --- Mobile touch controls ---
+    var btnLeft = document.getElementById('btnLeft');
+    var btnRight = document.getElementById('btnRight');
+    var btnJump = document.getElementById('btnJump');
+
+    function addTouchControl(btn, onDown, onUp) {
+        btn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.classList.add('active');
+            onDown();
+        }, { passive: false });
+        btn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.classList.remove('active');
+            onUp();
+        }, { passive: false });
+        btn.addEventListener('touchcancel', function(e) {
+            e.preventDefault();
+            btn.classList.remove('active');
+            onUp();
+        }, { passive: false });
+        // Prevent click from bubbling to canvas (which would trigger handleJump)
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    addTouchControl(btnLeft,
+        function() { keys.left = true; },
+        function() { keys.left = false; }
+    );
+    addTouchControl(btnRight,
+        function() { keys.right = true; },
+        function() { keys.right = false; }
+    );
+    addTouchControl(btnJump,
+        function() { handleJump(); },
+        function() { /* nothing on release */ }
+    );
+
     window.addEventListener('keydown', function(e) {
         if (e.code === 'Space') {
             e.preventDefault();
