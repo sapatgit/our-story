@@ -3,7 +3,7 @@
 // ===========================================================================
 import { canvas, ctx } from './canvas.js';
 import { sprites, useFallbackCharacter, groundSourceSize } from './sprites.js';
-import { GROUND_Y, gameState, player, hearts, questionBlockHit, fireworks } from './state.js';
+import { GROUND_Y, gameState, player, hearts, questionBlockHit, fireworks, birds } from './state.js';
 import {
     // Dimensions
     TILE_W, TILE_H, CHAR_DISPLAY_W, HEART_W, HEART_H,
@@ -12,6 +12,10 @@ import {
     MARIO_RUN_FRAMES, ANIM_FRAME_DIVISOR,
     // Sky
     SKY_COLOR_TOP, SKY_COLOR_BOTTOM,
+    // Background hills
+    HILL_PARALLAX, HILL_SCALE, HILL_GROUND_OVERLAP,
+    TILES_HILL_LARGE, TILES_HILL_SMALL, TILES_HILL_FLAT,
+    BG_HILLS, COLOR_HILL_GREEN, COLOR_HILL_OLIVE,
     // Clouds
     CLOUD_PARALLAX, CLOUD_SPRITE_SCALE, CLOUD_POSITIONS,
     CLOUD_Y_SPRITE, CLOUD_Y_FALLBACK,
@@ -19,10 +23,9 @@ import {
     CLOUD_ARC_SMALL, CLOUD_ARC_LARGE,
     CLOUD_FALLBACK_RECT_W, CLOUD_FALLBACK_RECT_H,
     // Pipes
-    PIPE_XS, PIPE_W, PIPE_H, PIPE_SPRITE_SCALE,
-    PIPE_BODY_OFFSET_1, PIPE_BODY_OFFSET_2,
+    PIPES, PIPE_W, PIPE_SPRITE_SCALE, PIPE_SPRITES,
+    pipeHeight,
     PIPE_RIM_OVERHANG, PIPE_RIM_CAP_HEIGHT, PIPE_RIM_EXTRA_WIDTH, PIPE_RIM_Y_OFFSET,
-    TILES_PIPE_RIM, TILES_PIPE_BODY,
     COLOR_PIPE_GREEN, COLOR_PIPE_GREEN_DARK, COLOR_PIPE_GREY, COLOR_PIPE_GREY_DARK,
     // Castle
     CASTLE_X, CASTLE_W, CASTLE_H, CASTLE_BASE_OFFSET, CASTLE_OFFSCREEN_BUFFER,
@@ -53,7 +56,9 @@ import {
     HEART_GLOW_BASE_R, HEART_GLOW_INNER_R,
     HEART_GLOW_CENTER, HEART_GLOW_MID, HEART_GLOW_EDGE,
     // Misc
-    COLOR_WHITE
+    COLOR_WHITE,
+    // Birds
+    BIRD_PARALLAX, BIRD_BOB_FREQ, BIRD_STROKE_WIDTH, BIRD_COLOR
 } from './constants.js';
 
 // ===========================================================================
@@ -66,6 +71,49 @@ export function drawSky() {
     g.addColorStop(1, SKY_COLOR_BOTTOM);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// ---------------------------------------------------------------------------
+// Background hills — large decorative scenery behind everything else
+// ---------------------------------------------------------------------------
+
+const HILL_SPRITES = {
+    large: TILES_HILL_LARGE,
+    small: TILES_HILL_SMALL,
+    flat:  TILES_HILL_FLAT
+};
+
+export function drawHills() {
+    const t = sprites.tiles;
+    const s = HILL_SCALE;
+
+    BG_HILLS.forEach(function(hill) {
+        const src = HILL_SPRITES[hill.sprite];
+        const drawW = src.sw * s;
+        const drawH = src.sh * s;
+        const drawX = hill.x - gameState.scrollOffset * HILL_PARALLAX;
+        // Base sinks into the ground so the hill looks planted, not floating
+        const drawY = GROUND_Y - drawH + Math.round(drawH * HILL_GROUND_OVERLAP);
+
+        if (drawX + drawW < 0 || drawX > canvas.width) return;
+
+        if (t && t.complete) {
+            const prevSmooth = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(t, src.sx, src.sy, src.sw, src.sh,
+                drawX, drawY, drawW, drawH);
+            ctx.imageSmoothingEnabled = prevSmooth;
+        } else {
+            // Fallback: simple colored hill shape
+            const color = hill.sprite === 'flat' ? COLOR_HILL_OLIVE : COLOR_HILL_GREEN;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(drawX, drawY + drawH);
+            ctx.quadraticCurveTo(drawX + drawW * 0.5, drawY - drawH * 0.15,
+                drawX + drawW, drawY + drawH);
+            ctx.fill();
+        }
+    });
 }
 
 export function drawClouds() {
@@ -97,30 +145,95 @@ export function drawClouds() {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Ambient birds — decorative flapping birds between clouds and platforms
+// ---------------------------------------------------------------------------
+
+/** Advances each bird's flap and bobbing phases */
+export function updateBirds() {
+    for (let i = 0; i < birds.length; i++) {
+        const b = birds[i];
+        b.worldX += b.speed;
+        b.flapPhase += b.flapRate;
+        b.bobPhase += BIRD_BOB_FREQ;
+    }
+}
+
+/** Draws all birds at their current positions with flapping wings */
+export function drawBirds() {
+    ctx.save();
+    ctx.strokeStyle = BIRD_COLOR;
+    ctx.fillStyle = BIRD_COLOR;
+    ctx.lineWidth = BIRD_STROKE_WIDTH;
+    ctx.lineCap = 'round';
+
+    for (let i = 0; i < birds.length; i++) {
+        const b = birds[i];
+        const screenX = b.worldX - gameState.scrollOffset * BIRD_PARALLAX;
+
+        // Skip birds that are off-screen (with padding for wing span)
+        if (screenX < -40 || screenX > canvas.width + 40) continue;
+
+        const bobY = b.baseY + Math.sin(b.bobPhase) * b.bobAmp;
+        const flapAngle = Math.sin(b.flapPhase); // -1 (wings up) to +1 (wings down)
+
+        const wingSpan = b.size * 3.5;
+        const wingDip = flapAngle * b.size * 2.2;
+
+        // Body — small filled ellipse
+        ctx.beginPath();
+        ctx.ellipse(screenX, bobY, b.size * 1.2, b.size * 0.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Left wing — quadratic curve from body to wing tip
+        ctx.beginPath();
+        ctx.moveTo(screenX - 1, bobY);
+        ctx.quadraticCurveTo(
+            screenX - wingSpan * 0.5, bobY - wingDip * 0.6,
+            screenX - wingSpan, bobY - wingDip
+        );
+        ctx.stroke();
+
+        // Right wing
+        ctx.beginPath();
+        ctx.moveTo(screenX + 1, bobY);
+        ctx.quadraticCurveTo(
+            screenX + wingSpan * 0.5, bobY - wingDip * 0.6,
+            screenX + wingSpan, bobY - wingDip
+        );
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
 export function drawPipes() {
     const t = sprites.tiles;
     const s = PIPE_SPRITE_SCALE;
 
-    PIPE_XS.forEach(function(worldX, idx) {
-        const x = worldX - gameState.scrollOffset;
-        if (x + PIPE_W * s < 0 || x > canvas.width) return;
+    PIPES.forEach(function(pipe, idx) {
+        const src = PIPE_SPRITES[pipe.type];
+        const x = pipe.x - gameState.scrollOffset;
+        const h = pipeHeight(pipe.type);
+        if (x + src.sw * s < 0 || x > canvas.width) return;
+
+        const topY = GROUND_Y - h;
 
         if (t && t.complete) {
-            const rim = TILES_PIPE_RIM;
-            const body = TILES_PIPE_BODY;
             const prevSmooth = ctx.imageSmoothingEnabled;
             ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(t, rim.sx, rim.sy, rim.sw, rim.sh, x, GROUND_Y - PIPE_H, rim.sw * s, rim.sh * s);
-            ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + PIPE_BODY_OFFSET_1, body.sw * s, body.sh * s);
-            ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + PIPE_BODY_OFFSET_2, body.sw * s, body.sh * s);
+            ctx.drawImage(t, src.sx, src.sy, src.sw, src.sh,
+                x, topY, src.sw * s, src.sh * s);
             ctx.imageSmoothingEnabled = prevSmooth;
         } else {
+            // Fallback procedural pipe (alternating green / grey)
             const fill = idx % 2 === 0 ? COLOR_PIPE_GREEN : COLOR_PIPE_GREY;
             const dark = idx % 2 === 0 ? COLOR_PIPE_GREEN_DARK : COLOR_PIPE_GREY_DARK;
             ctx.fillStyle = fill;
-            ctx.fillRect(x, GROUND_Y - PIPE_H, PIPE_W, PIPE_H);
+            ctx.fillRect(x, topY, PIPE_W, h);
             ctx.fillStyle = dark;
-            ctx.fillRect(x - PIPE_RIM_OVERHANG, GROUND_Y - PIPE_H - PIPE_RIM_Y_OFFSET, PIPE_W + PIPE_RIM_EXTRA_WIDTH, PIPE_RIM_CAP_HEIGHT);
+            ctx.fillRect(x - PIPE_RIM_OVERHANG, topY - PIPE_RIM_Y_OFFSET,
+                PIPE_W + PIPE_RIM_EXTRA_WIDTH, PIPE_RIM_CAP_HEIGHT);
             ctx.fillStyle = fill;
         }
     });

@@ -8,7 +8,7 @@ import {
 import {
     GRAVITY, SCROLL_SPEED, FLAG_SLIDE_SPEED,
     TILE_W, TILE_H, HEART_W, HEART_H, HEART_RELEASE_GAP,
-    PIPE_XS, PIPE_W, PIPE_H,
+    PIPES, PIPE_W, pipeHeight,
     BRICK_PLATFORMS, HEART_PLATFORMS,
     TRIANGLE_MOUNTAIN_LEFT, TRIANGLE_MOUNTAIN_BASE_BLOCKS, TRIANGLE_MOUNTAIN_ROWS,
     FLAGPOLE_X, FLAGPOLE_H, FLAG_DISPLAY_H,
@@ -122,8 +122,8 @@ export function updatePlayer() {
         getTriangleMountainPlatforms().forEach(function(p) {
             list.push(p);
         });
-        PIPE_XS.forEach(function(px) {
-            list.push({ x: px, y: GROUND_Y - PIPE_H, w: PIPE_W, h: 0 });
+        PIPES.forEach(function(pipe) {
+            list.push({ x: pipe.x, y: GROUND_Y - pipeHeight(pipe.type), w: PIPE_W, h: 0 });
         });
         return list;
     }
@@ -156,14 +156,14 @@ export function updatePlayer() {
     }
 
     // ---- Horizontal pipe collision ----
-    PIPE_XS.forEach(function(px) {
-        const pipeLeft = px;
-        const pipeRight = px + PIPE_W;
+    PIPES.forEach(function(pipe) {
+        const pipeLeft = pipe.x;
+        const pipeRight = pipe.x + PIPE_W;
         if (right > pipeLeft && left < pipeRight) {
-            const pipeTop = GROUND_Y - PIPE_H;
+            const pipeTop = GROUND_Y - pipeHeight(pipe.type);
             if (footY > pipeTop && headY < GROUND_Y) {
-                if (player.x + player.width * 0.5 < px + PIPE_W * 0.5) {
-                    player.x = px - player.width;
+                if (player.x + player.width * 0.5 < pipe.x + PIPE_W * 0.5) {
+                    player.x = pipe.x - player.width;
                 } else {
                     player.x = pipeRight;
                 }

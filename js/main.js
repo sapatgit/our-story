@@ -6,10 +6,11 @@ import { sprites } from './sprites.js';   // imported so sprites.js evaluates & 
 import {
     GROUND_Y, setGroundY,
     gameState, player, keys,
-    initHearts, resetFireworks
+    initHearts, initBirds, resetFireworks
 } from './state.js';
 import {
-    drawSky, drawClouds, drawPipes, drawCastle,
+    drawSky, drawHills, drawClouds, drawBirds, updateBirds,
+    drawPipes, drawCastle,
     drawBrickPlatforms, drawGroundTiles, drawTriangleMountain,
     drawHeartPlatforms, drawHearts, drawPlayer,
     drawFlagpole, drawFireworks
@@ -60,7 +61,10 @@ let gameLoopId = null;
 
 function gameLoop() {
     drawSky();
+    drawHills();
     drawClouds();
+    updateBirds();
+    drawBirds();
     drawPipes();
     drawCastle();
     drawBrickPlatforms();
@@ -127,6 +131,7 @@ window.startGame = function() {
     player.velocityY = 0;
     player.jumping = false;
     initHearts();
+    initBirds();
     document.getElementById('instructions').style.display = 'block';
     gameLoop();
 };

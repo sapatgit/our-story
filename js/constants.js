@@ -64,6 +64,37 @@ export const GEN_TILE_PIT_SIZE = 4;            // size of dark "pit" accent squa
 export const GEN_TILE_PIT_INSET = 6;           // inset of pit squares from tile edge
 export const GEN_TILE_PIT_FAR = 30;            // far-side inset for pit squares
 
+// ---- Background Hills (purely decorative, slow parallax) ----
+/** Parallax factor for background hills — much slower than foreground */
+export const HILL_PARALLAX = 0.15;
+/** Draw scale for hill sprites (3x because source sprites are small) */
+export const HILL_SCALE = 3;
+// tiles.png sprite regions — row 1 scenery (pixel-perfect from analysis)
+/** Large green mountain with dark green body and lighter peak */
+export const TILES_HILL_LARGE = { sx: 86, sy: 5, sw: 80, sh: 35 };
+/** Smaller green mountain */
+export const TILES_HILL_SMALL = { sx: 169, sy: 21, sw: 48, sh: 19 };
+/** Flat olive / yellow-green hill */
+export const TILES_HILL_FLAT  = { sx: 220, sy: 24, sw: 64, sh: 16 };
+/** Fraction of drawn height that sinks below GROUND_Y (base hidden by ground tiles) */
+export const HILL_GROUND_OVERLAP = 0.3;
+/** World X positions and types for background hills */
+export const BG_HILLS = [
+    { sprite: 'large', x: 0 },
+    { sprite: 'small', x: 500 },
+    { sprite: 'flat',  x: 900 },
+    { sprite: 'large', x: 1400 },
+    { sprite: 'small', x: 1850 },
+    { sprite: 'flat',  x: 2250 },
+    { sprite: 'large', x: 2700 },
+    { sprite: 'small', x: 3150 },
+    { sprite: 'flat',  x: 3600 }
+];
+// Fallback hill colors when tiles.png hasn't loaded
+export const COLOR_HILL_GREEN = '#4CAF50';
+export const COLOR_HILL_OLIVE = '#8DB600';
+
+
 // ---- Cloud Rendering ----
 /** Parallax speed factor — clouds scroll at this fraction of foreground speed */
 export const CLOUD_PARALLAX = 0.3;
@@ -86,16 +117,33 @@ export const CLOUD_FALLBACK_RECT_W = 72;   // rectangular base width
 export const CLOUD_FALLBACK_RECT_H = 14;   // rectangular base height
 
 // ---- Pipe Layout & Rendering ----
-/** World X positions of pipes rising from the ground */
-export const PIPE_XS = [500, 1600, 3000, 4600, 6200];
+// Each pipe uses a complete sprite from tiles.png row 5 (no stacking needed).
+// Three sizes available: 'short' (32×32), 'medium' (32×48), 'tall' (32×64).
+/** Complete pipe sprite regions — each is a single image with rim + body */
+export const PIPE_SPRITES = {
+    short:  { sx: 309, sy: 417, sw: 32, sh: 32 },
+    medium: { sx: 271, sy: 401, sw: 32, sh: 48 },
+    tall:   { sx: 230, sy: 385, sw: 32, sh: 64 }
+};
+export const PIPES = [
+    { x: 500,  type: 'medium' },   // near start
+    { x: 1300, type: 'short' },
+    { x: 1600, type: 'tall' },
+    { x: 2500, type: 'short' },
+    { x: 3000, type: 'tall' },
+    { x: 3950, type: 'medium' },
+    { x: 4600, type: 'medium' },
+    { x: 5800, type: 'short' },
+    { x: 6200, type: 'tall' },
+    { x: 7200, type: 'medium' }
+];
 export const PIPE_W = 48;
-export const PIPE_H = 96;
 /** Scale multiplier for drawing pipe sprites from tiles.png */
 export const PIPE_SPRITE_SCALE = 2;
-/** Vertical offset of the first pipe body segment below the rim */
-export const PIPE_BODY_OFFSET_1 = 32;
-/** Vertical offset of the second pipe body segment below the rim */
-export const PIPE_BODY_OFFSET_2 = 64;
+/** Returns the drawn height of a pipe given its type string */
+export function pipeHeight(type) {
+    return PIPE_SPRITES[type].sh * PIPE_SPRITE_SCALE;
+}
 /** How much the fallback pipe rim extends beyond the body on each side */
 export const PIPE_RIM_OVERHANG = 4;
 /** Height of the fallback pipe rim cap */
@@ -208,9 +256,7 @@ export const TILES_CASTLE = { sx: 79, sy: 767, sw: 148, sh: 176 };
 export const TILES_IMAGE_W = 411;
 /** Expected height of the tiles.png sprite sheet */
 export const TILES_IMAGE_H = 949;
-// tiles.png pipe sprite regions
-export const TILES_PIPE_RIM  = { sx: 309, sy: 417, sw: 32, sh: 16 };
-export const TILES_PIPE_BODY = { sx: 309, sy: 433, sw: 32, sh: 15 };
+
 
 // ---- Heartbeat Animation ----
 /** Angular speed of the heartbeat oscillation */
@@ -338,6 +384,40 @@ export const COLOR_HAIR_BROWN = '#5C3317';
 export const HEART_GLOW_CENTER = 'rgba(255,50,80,0.3)';
 export const HEART_GLOW_MID = 'rgba(255,50,80,0.1)';
 export const HEART_GLOW_EDGE = 'rgba(255,50,80,0)';
+
+// ---- Ambient Birds ----
+/** Number of decorative birds placed across the level */
+export const BIRD_COUNT = 14;
+/** Parallax factor for birds (between clouds 0.3 and foreground 1.0) */
+export const BIRD_PARALLAX = 0.5;
+/** Minimum Y position (below clouds) */
+export const BIRD_Y_MIN = 110;
+/** Y range for random placement (max Y = BIRD_Y_MIN + BIRD_Y_RANGE) */
+export const BIRD_Y_RANGE = 160;
+/** Minimum horizontal drift speed (px per frame, world-relative) */
+export const BIRD_DRIFT_MIN = 0.2;
+/** Additional random drift speed */
+export const BIRD_DRIFT_EXTRA = 0.5;
+/** Minimum wing-flap angular speed (radians per frame) */
+export const BIRD_FLAP_MIN = 0.06;
+/** Additional random flap speed */
+export const BIRD_FLAP_EXTRA = 0.08;
+/** Minimum vertical bobbing amplitude (px) */
+export const BIRD_BOB_AMP_MIN = 2;
+/** Additional random bobbing amplitude */
+export const BIRD_BOB_AMP_EXTRA = 5;
+/** Vertical bobbing frequency (radians per frame) */
+export const BIRD_BOB_FREQ = 0.02;
+/** Body radius of the smallest bird */
+export const BIRD_SIZE_MIN = 2;
+/** Additional random body radius */
+export const BIRD_SIZE_EXTRA = 2;
+/** Stroke width for bird wings */
+export const BIRD_STROKE_WIDTH = 1.5;
+/** Bird body / wing color (dark silhouette) */
+export const BIRD_COLOR = '#2C3E50';
+/** Horizontal spacing between birds across the level */
+export const BIRD_SPACING = 700;
 
 // ---- Number of sprites to load before enabling the start button ----
 export const TOTAL_SPRITES_TO_LOAD = 4;
