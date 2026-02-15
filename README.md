@@ -37,9 +37,9 @@ Then open [http://localhost:8000](http://localhost:8000).
 ## Project Structure
 
 ```
-index.html    — Game HTML, CSS, and main inline script
-drawing.js    — Canvas rendering functions (backgrounds, sprites)
-game.js       — Legacy game logic module (unused; logic is inline)
+index.html    — Game HTML structure and screen overlays
+styles.css    — All CSS (UI, overlays, mobile touch controls)
+game.js       — Game logic, rendering, sprites, and input handling
 assets/       — Sprite sheets (mario.png, bricks.png, tiles.png)
 ```
 

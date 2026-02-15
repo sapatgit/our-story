@@ -1,370 +1,1065 @@
-// Game constants
-const GRAVITY = 0.6;
-const JUMP_STRENGTH = -12;
-const GROUND_Y = canvas.height - 80;
-const SCROLL_SPEED = 5;
+(function() {
+    'use strict';
 
-// Level data
-const LEVELS = [
-    {
-        id: 0,
-        title: "College Days 📚",
-        subtitle: "Where It All Began",
-        description: "Project group partners who became inseparable best friends! From late-night assignments to endless conversations, you were someone special. 📚✨",
-        difficulty: "Easy",
-        theme: 'college',
-        hazardCount: 0
-    },
-    {
-        id: 1,
-        title: "Our First Date 🥟",
-        subtitle: "Park By The Lake",
-        description: "Remember that beautiful day at the park by the lake? The sun reflected off the water, and we couldn't stop talking. Those delicious momos at momo.i.am changed everything. 🥟💕",
-        difficulty: "Easy",
-        theme: 'park',
-        hazardCount: 3
-    },
-    {
-        id: 2,
-        title: "Pariah Night 🎵",
-        subtitle: "A Magical Connection",
-        description: "Your first time getting high with me... Steven Wilson's 'Pariah' playing softly. That magical connection we felt. That night, I realized you were my soulmate. 🎵🌙",
-        difficulty: "Medium",
-        theme: 'night',
-        hazardCount: 4
-    },
-    {
-        id: 3,
-        title: "Lake Talks 🌅",
-        subtitle: "Deep Conversations",
-        description: "All those walks around college, deep conversations by the lake at dawn. Hours felt like minutes with you. We talked about dreams and fears. I fell in love with your mind first. 🌅💭",
-        difficulty: "Medium",
-        theme: 'dawn',
-        hazardCount: 4
-    },
-    {
-        id: 4,
-        title: "Ooty Adventure 🏔️",
-        subtitle: "Mountains & Mist",
-        description: "Our first trip together! Mountains, mist, and making memories that would last forever. Exploring together, laughing freely. That trip showed me adventures are better with you. 🏔️❤️",
-        difficulty: "Hard",
-        theme: 'mountain',
-        hazardCount: 5
-    },
-    {
-        id: 5,
-        title: "Goa Beach Race 🏖️",
-        subtitle: "Freedom & Joy",
-        description: "Racing on the beach just for fun, feeling free and alive. The sand beneath our feet, the ocean breeze. Pure joy in the simplest moments. That's when I realized love is these perfect little moments. 🏖️🏃",
-        difficulty: "Hard",
-        theme: 'beach',
-        hazardCount: 5
-    },
-    {
-        id: 6,
-        title: "Horror Movie Nights 🎬",
-        subtitle: "Safe in Your Arms",
-        description: "Our favorite thing - getting scared together during horror movies, holding each other close. Your hand in mine, your head on my shoulder. Those weren't just movies - they were moments where I felt completely safe. 🎬👻",
-        difficulty: "Hard",
-        theme: 'dark',
-        hazardCount: 6
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ---- Sprites: Mario from [Super-Mario-Bros-1-1-in-Unity](https://github.com/Hammania689/Super-Mario-Bros-1-1-in-Unity); ground/heart generated. ----
+    // Mario sprite sheet frame rects (from Unity .meta, row y=341): [sx, sy, sw, sh].
+    const MARIO_SHEET_Y = 341;
+    const MARIO_RUN_FRAMES = [
+        [142, MARIO_SHEET_Y, 16, 16],
+        [161, MARIO_SHEET_Y, 13, 16],
+        [177, MARIO_SHEET_Y, 15, 16],
+        [195, MARIO_SHEET_Y, 11, 16]
+    ];
+    const MARIO_JUMP_FRAME = [239, MARIO_SHEET_Y, 16, 24];
+
+    var useFallbackCharacter = false;
+
+    function generateCharacterSheetFallback() {
+        var c = document.createElement('canvas');
+        c.width = 160;
+        c.height = 48;
+        var cctx = c.getContext('2d');
+        var capRed = '#E52521', skin = '#F8C898', overallBlue = '#0165B3', shoeBrown = '#8B4513', white = '#FFFFFF', black = '#000000';
+        for (var frame = 0; frame < 5; frame++) {
+            var ox = frame * 32, legOffset = frame % 2 === 0 ? 0 : 2;
+            cctx.fillStyle = capRed;
+            cctx.fillRect(ox + 4, 2, 24, 8);
+            cctx.fillRect(ox + 8, 0, 16, 4);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 4, 4, 10, 3);
+            cctx.fillRect(ox + 12, 2, 6, 5);
+            cctx.fillStyle = '#5C3317';
+            cctx.fillRect(ox + 20, 4, 8, 4);
+            cctx.fillStyle = skin;
+            cctx.fillRect(ox + 6, 10, 20, 14);
+            cctx.fillStyle = black;
+            cctx.fillRect(ox + 8, 12, 3, 3);
+            cctx.fillRect(ox + 19, 12, 3, 3);
+            cctx.fillRect(ox + 6, 18, 6, 2);
+            cctx.fillRect(ox + 20, 18, 6, 2);
+            cctx.fillStyle = capRed;
+            cctx.fillRect(ox + 6, 24, 20, 12);
+            cctx.fillStyle = overallBlue;
+            cctx.fillRect(ox + 8, 24, 16, 10);
+            cctx.fillRect(ox + 10, 24, 4, 12);
+            cctx.fillRect(ox + 18, 24, 4, 12);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 12, 26, 2, 2);
+            cctx.fillRect(ox + 18, 26, 2, 2);
+            cctx.fillStyle = skin;
+            cctx.fillRect(ox + 2, 26, 5, 10);
+            cctx.fillRect(ox + 25, 26, 5, 10);
+            cctx.fillStyle = white;
+            cctx.fillRect(ox + 2, 34, 5, 5);
+            cctx.fillRect(ox + 25, 34, 5, 5);
+            cctx.fillStyle = overallBlue;
+            cctx.fillRect(ox + 6 + legOffset, 36, 8, 12);
+            cctx.fillRect(ox + 18 - legOffset, 36, 8, 12);
+            cctx.fillStyle = shoeBrown;
+            cctx.fillRect(ox + 6 + legOffset, 46, 8, 2);
+            cctx.fillRect(ox + 18 - legOffset, 46, 8, 2);
+        }
+        return c.toDataURL('image/png');
     }
-];
 
-// Game state
-let gameState = {
-    running: false,
-    paused: false,
-    currentLevel: 0,
-    heartsCollected: 0,
-    totalHearts: 7,
-    scrollOffset: 0,
-    levelStarted: false
-};
+    function generateGroundTile() {
+        const c = document.createElement('canvas');
+        c.width = 40;
+        c.height = 40;
+        const cctx = c.getContext('2d');
+        // Mario-style brick: orange-brown with dark outline and pits
+        cctx.fillStyle = '#C87838';
+        cctx.fillRect(0, 0, 40, 40);
+        cctx.strokeStyle = '#8B4513';
+        cctx.lineWidth = 2;
+        cctx.strokeRect(1, 1, 38, 38);
+        cctx.fillStyle = '#A06020';
+        cctx.fillRect(6, 6, 4, 4);
+        cctx.fillRect(30, 6, 4, 4);
+        cctx.fillRect(6, 30, 4, 4);
+        cctx.fillRect(30, 30, 4, 4);
+        return c.toDataURL('image/png');
+    }
 
-let gameLoopId = null;
+    function generateHeartSprite() {
+        // 13x12 pixel-art heart, drawn on a 13x12 canvas (scaled up at draw time)
+        var w = 13, h = 12;
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var cctx = c.getContext('2d');
+        var px = function(x, y) { cctx.fillRect(x, y, 1, 1); };
 
-// Player object
-let player = {
-    x: 100,
-    y: GROUND_Y,
-    width: 32,
-    height: 48,
-    velocityY: 0,
-    jumping: false,
-    direction: 1,
-    isAirborne: false
-};
+        //  outline (black)
+        cctx.fillStyle = '#000';
+        // row 0:   ##  ##
+        px(1,0);px(2,0);px(3,0);               px(9,0);px(10,0);px(11,0);
+        // row 1:  #    # #    #
+        px(0,1);                px(4,1); px(8,1);                px(12,1);
+        // row 2:  #          #
+        px(0,2);                                                  px(12,2);
+        // row 3:  #          #
+        px(0,3);                                                  px(12,3);
+        // row 4:   #        #
+        px(1,4);                                                px(11,4);
+        // row 5:    #      #
+        px(2,5);                                          px(10,5);
+        // row 6:     #    #
+        px(3,6);                                    px(9,6);
+        // row 7:      #  #
+        px(4,7);                              px(8,7);
+        // row 8:       ##
+        px(5,8);                        px(7,8);
+        // row 9:        #
+        px(6,9);
 
-// Game objects
-let hearts = [];
-let hazards = [];
-let particles = [];
+        // main red fill
+        cctx.fillStyle = '#E52521';
+        // row 1
+        px(1,1);px(2,1);px(3,1);  px(9,1);px(10,1);px(11,1);
+        // row 2
+        px(1,2);px(2,2);px(3,2);px(4,2);px(5,2);px(6,2);px(7,2);px(8,2);px(9,2);px(10,2);px(11,2);
+        // row 3
+        px(1,3);px(2,3);px(3,3);px(4,3);px(5,3);px(6,3);px(7,3);px(8,3);px(9,3);px(10,3);px(11,3);
+        // row 4
+        px(2,4);px(3,4);px(4,4);px(5,4);px(6,4);px(7,4);px(8,4);px(9,4);px(10,4);
+        // row 5
+        px(3,5);px(4,5);px(5,5);px(6,5);px(7,5);px(8,5);px(9,5);
+        // row 6
+        px(4,6);px(5,6);px(6,6);px(7,6);px(8,6);
+        // row 7
+        px(5,7);px(6,7);px(7,7);
+        // row 8
+        px(6,8);
 
-// Create level hazards
-function createHazards() {
-    const level = LEVELS[gameState.currentLevel];
-    hazards = [];
+        // dark red shadow (bottom-right inner edge)
+        cctx.fillStyle = '#A01010';
+        px(10,3);px(11,3);  px(9,4);px(10,4);  px(8,5);px(9,5);  px(7,6);px(8,6);  px(7,7);
 
-    for (let i = 0; i < level.hazardCount; i++) {
-        const x = 600 + i * 900;
-        const type = i % 2 === 0 ? 'spike' : 'gap';
-        
-        if (type === 'spike') {
-            hazards.push({
-                type: 'spike',
-                x: x,
-                y: GROUND_Y,
-                width: 40,
-                height: 50
-            });
-        } else {
-            hazards.push({
-                type: 'gap',
-                x: x,
-                y: GROUND_Y + 40,
-                width: 120,
-                height: 40
-            });
+        // highlight (top-left lobes)
+        cctx.fillStyle = '#FF6B6B';
+        px(2,1);px(3,1);  px(10,1);px(11,1);
+        px(1,2);px(2,2);  px(10,2);px(11,2);
+
+        // white specular
+        cctx.fillStyle = '#FFC0C0';
+        px(2,1); px(10,1);
+
+        return c.toDataURL('image/png');
+    }
+
+    // ---- Sprite loader: Mario, bricks (ground), tiles (clouds/pipes) from assets; heart generated ----
+    const sprites = { character: null, ground: null, tiles: null, heart: null };
+    var loadPending = 4;
+
+    function onSpriteLoad() {
+        loadPending--;
+        if (loadPending === 0) {
+            document.getElementById('loadingText').textContent = '';
+            document.getElementById('startBtn').disabled = false;
         }
     }
-}
 
-// Create heart
-function createHearts() {
-    hearts = [];
-    const level = LEVELS[gameState.currentLevel];
-    
-    // Single heart per level - place it where player can easily reach it
-    let x;
-    if (gameState.currentLevel === 0) {
-        x = 800; // Level 1: Very close
-    } else {
-        x = 1000 + level.hazardCount * 600; // Other levels
-    }
-    
-    hearts.push({
-        id: level.id,
-        x: x,
-        y: GROUND_Y - 150,
-        width: 32,
-        height: 32,
-        collected: false,
-        angle: 0,
-        level: gameState.currentLevel
-    });
-    console.log(`Level ${gameState.currentLevel}: Heart placed at x=${x}, Player starts at x=100`);
-}
+    (function loadSprites() {
+        var mario = new Image();
+        mario.onload = function() { sprites.character = mario; useFallbackCharacter = false; onSpriteLoad(); };
+        mario.onerror = function() {
+            useFallbackCharacter = true;
+            var fallback = new Image();
+            fallback.onload = function() { sprites.character = fallback; onSpriteLoad(); };
+            fallback.src = generateCharacterSheetFallback();
+        };
+        mario.src = 'assets/mario.png';
 
-// Game logic
-function updatePlayer() {
-    // Auto-run
-    player.x += 4;
+        var groundImg = new Image();
+        groundImg.onload = function() { sprites.ground = groundImg; onSpriteLoad(); };
+        groundImg.onerror = function() {
+            var fb = new Image();
+            fb.onload = function() { sprites.ground = fb; onSpriteLoad(); };
+            fb.src = generateGroundTile();
+        };
+        groundImg.src = 'assets/bricks.png';
 
-    // Apply gravity
-    player.velocityY += GRAVITY;
-    player.y += player.velocityY;
+        var tilesImg = new Image();
+        tilesImg.onload = function() { sprites.tiles = tilesImg; onSpriteLoad(); };
+        tilesImg.onerror = function() { sprites.tiles = null; onSpriteLoad(); };
+        tilesImg.src = 'assets/tiles.png';
 
-    // Check if airborne
-    player.isAirborne = player.y < GROUND_Y;
+        var heartImg = new Image();
+        heartImg.onload = function() { sprites.heart = heartImg; onSpriteLoad(); };
+        heartImg.src = generateHeartSprite();
+    })();
 
-    // Ground collision
-    if (player.y >= GROUND_Y) {
-        player.y = GROUND_Y;
-        player.velocityY = 0;
-        player.jumping = false;
-    }
+    // ---- Constants ----
+    const GRAVITY = 0.6;
+    const JUMP_STRENGTH = -12;
+    const SCROLL_SPEED = 4;
+    const TILE_W = 40;
+    const TILE_H = 40;
+    const CHAR_DISPLAY_W = 32;
+    const CHAR_DISPLAY_H = 48;
+    const HEART_W = 32;
+    const HEART_H = 32;
 
-    // Hazard collision
-    hazards.forEach(hazard => {
-        if (hazard.type === 'spike') {
-            if (checkCollision(player, hazard)) {
-                resetLevel();
-            }
-        } else if (hazard.type === 'gap') {
-            if (player.y >= GROUND_Y && checkCollision(player, hazard)) {
-                resetLevel();
-            }
-        }
-    });
+    let GROUND_Y;
 
-    // Update scroll
-    gameState.scrollOffset = Math.max(0, player.x - 200);
-}
+    const MEMORIES = [
+        { title: "College Days 📚", text: "Project group partners who became inseparable best friends! From late-night assignments to endless conversations, you were someone special. 📚✨" },
+        { title: "Our First Date 🥟", text: "Remember that beautiful day at the park by the lake? The sun reflected off the water, and we couldn't stop talking. Those delicious momos at momo.i.am changed everything. 🥟💕" },
+        { title: "Pariah Night 🎵", text: "First time you tasted 'bhaang' with me on Holi... Steven Wilson's 'Pariah' playing... That magical connection we felt 🎵🌙" },
+        { title: "Lake Talks 🌅", text: "All those walks around college, deep conversations by the lake and the endless tea breaks. Hours felt like minutes with you. We talked about dreams and fears. I fell so in love with you. 🌅💭🌅💭" },
+        { title: "Ooty Adventure 🏔️", text: "Our first trip together! Mountains, mist, and making memories that would last forever. Exploring together, laughing freely. That trip showed me adventures are better with you. 🏔️❤️"},
+        { title: "Goa Beach Race 🏖️", text: "Racing on the beach just for fun, feeling free and alive. The sand beneath our feet, the ocean breeze. Pure joy in the simplest moments. That's when I realized love is these perfect little moments. 🏖️🏃" },
+        { title: "Horror Movie Nights 🎬", text: "Our favorite thing - getting scared together watching horror movies, holding each other close sipping wine. Your hand in mine, your head on my shoulder. Those weren't just movies - they were moments where I keep getting reminded just how much I love you. 🎬👻" }
+    ];
 
-function checkCollision(rect1, rect2) {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
-}
+    // Pipes rising from ground (world X; spaced with gaps)
+    const PIPE_XS = [500, 1600, 3000, 4600, 6200];
+    const PIPE_W = 48;
+    const PIPE_H = 96;
 
-function checkHeartCollision() {
-    hearts.forEach(heart => {
-        if (!heart.collected) {
-            const dx = player.x - heart.x;
-            const dy = player.y - heart.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+    // Brick platforms (yOff = offset from GROUND_Y; higher = more negative)
+    const BRICK_PLATFORMS = [
+        { x: 950, yOff: -112, w: 120, h: 24 },
+        { x: 2100, yOff: -136, w: 120, h: 24 },
+        { x: 3700, yOff: -120, w: 140, h: 24 },
+        { x: 5300, yOff: -104, w: 120, h: 24 }
+    ];
 
-            if (distance < 40) {
-                console.log('Heart collected!');
-                heart.collected = true;
-                gameState.heartsCollected++;
-                document.getElementById('heartCount').textContent = gameState.heartsCollected;
+    // Platform strips with heart block in middle (----^--): x, yOff, numBlocks (40px each), index of ? block
+    // Max jump ~114px; heart released 40px above platform; player center needs to be within 32px of heart center
+    // Safe yOff range: roughly -82 to -146
+    const HEART_PLATFORMS = [
+        { x: 670, yOff: -108, numBlocks: 5, heartIndex: 2 },
+        { x: 1870, yOff: -118, numBlocks: 5, heartIndex: 2 },
+        { x: 3120, yOff: -126, numBlocks: 5, heartIndex: 2 },
+        { x: 4320, yOff: -134, numBlocks: 5, heartIndex: 2 },
+        { x: 5520, yOff: -140, numBlocks: 5, heartIndex: 2 },
+        { x: 6820, yOff: -130, numBlocks: 5, heartIndex: 2 },
+        { x: 8120, yOff: -118, numBlocks: 5, heartIndex: 2 }
+    ];
+    // End of level: triangular mountain (ground blocks), then flagpole, then castle
+    const TRIANGLE_MOUNTAIN_LEFT = 8600;
+    const TRIANGLE_MOUNTAIN_BASE_BLOCKS = 11;
+    const TRIANGLE_MOUNTAIN_ROWS = 6;
+    // mountain right edge: 8600 + 11*40 = 9040
+    const FLAGPOLE_X = 9240;
+    const FLAGPOLE_H = 380;
+    const FLAG_DISPLAY_W = 56;
+    const FLAG_DISPLAY_H = 44;
+    const CASTLE_X = 9500;
+    const CASTLE_W = 560;
+    const CASTLE_H = 500;
+    // tiles.png (411x949) sprite regions
+    const TILES_CASTLE = { sx: 79, sy: 767, sw: 148, sh: 176 };
+    // 5 flagpole animation frames (flag slides from top to bottom)
+    const FLAGPOLE_FRAMES = [
+        { sx: 249, sy: 594, sw: 24, sh: 168 }, // frame 0: flag at top
+        { sx: 216, sy: 594, sw: 24, sh: 168 }, // frame 1: flag upper-mid
+        { sx: 182, sy: 594, sw: 24, sh: 168 }, // frame 2: flag middle
+        { sx: 149, sy: 594, sw: 24, sh: 168 }, // frame 3: flag lower-mid
+        { sx: 117, sy: 594, sw: 23, sh: 168 }, // frame 4: flag at bottom
+    ];
+    const TILES_PIPE_RIM = { sx: 309, sy: 417, sw: 32, sh: 16 };
+    const TILES_PIPE_BODY = { sx: 309, sy: 433, sw: 32, sh: 15 };
 
-                const level = LEVELS[gameState.currentLevel];
-                showMemory(level);
-                pauseGame();
-            }
-        }
-    });
-}
-
-function resetLevel() {
-    player.x = 100;
-    player.y = GROUND_Y;
-    player.velocityY = 0;
-    gameState.scrollOffset = 0;
-}
-
-// Input handling
-function handleJump() {
-    if (!player.jumping && !gameState.paused && gameState.running) {
-        player.velocityY = JUMP_STRENGTH;
-        player.jumping = true;
-    }
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-        e.preventDefault();
-        handleJump();
-    }
-});
-
-canvas.addEventListener('click', handleJump);
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    handleJump();
-});
-
-// Screen management
-function showMemory(level) {
-    document.getElementById('memoryTitle').textContent = level.title;
-    document.getElementById('memoryText').textContent = level.description;
-    document.getElementById('memoryScreen').classList.remove('hidden');
-}
-
-function closeMemory() {
-    document.getElementById('memoryScreen').classList.add('hidden');
-    // Small delay to ensure game loop stops
-    setTimeout(() => {
-        completeLevelScreen();
-    }, 100);
-}
-
-function completeLevelScreen() {
-    const nextLevelNum = gameState.currentLevel + 1;
-    if (nextLevelNum < LEVELS.length) {
-        document.getElementById('levelCompleteText').textContent = 
-            `You collected a heart! ${gameState.heartsCollected}/${gameState.totalHearts}`;
-        document.getElementById('levelCompleteScreen').classList.remove('hidden');
-    } else {
-        showEndScreen();
-    }
-}
-
-function nextLevel() {
-    document.getElementById('levelCompleteScreen').classList.add('hidden');
-    gameState.currentLevel++;
-    gameState.running = false;
-    gameState.paused = false;
-    
-    if (gameState.currentLevel >= LEVELS.length) {
-        showEndScreen();
-    } else {
-        showLevelScreen();
-    }
-}
-
-function pauseGame() {
-    gameState.paused = true;
-    document.getElementById('instructions').style.display = 'none';
-}
-
-function resumeGame() {
-    gameState.paused = false;
-    document.getElementById('instructions').style.display = 'block';
-}
-
-function showLevelScreen() {
-    const level = LEVELS[gameState.currentLevel];
-    document.getElementById('levelTitle').textContent = level.title;
-    document.getElementById('levelSubtitle').textContent = `Difficulty: ${level.difficulty}`;
-    document.getElementById('levelDescription').textContent = level.description;
-    document.getElementById('levelNumber').textContent = gameState.currentLevel + 1;
-    document.getElementById('levelScreen').classList.remove('hidden');
-}
-
-function startLevel() {
-    document.getElementById('levelScreen').classList.add('hidden');
-    gameState.running = true;
-    gameState.paused = false;
-    gameState.levelStarted = true;
-    createHazards();
-    createHearts();
-    resetLevel();
-    gameLoop();
-}
-
-function showEndScreen() {
-    gameState.running = false;
-    document.getElementById('endScreen').classList.remove('hidden');
-}
-
-function startGame() {
-    document.getElementById('startScreen').classList.add('hidden');
-    gameState.currentLevel = 0;
-    showLevelScreen();
-}
-
-function restartGame() {
-    document.getElementById('endScreen').classList.add('hidden');
-    document.getElementById('startScreen').classList.remove('hidden');
-    gameState = {
+    let gameState = {
         running: false,
         paused: false,
-        currentLevel: 0,
         heartsCollected: 0,
         totalHearts: 7,
         scrollOffset: 0,
-        levelStarted: false
+        animTime: 0,
+        flagReached: false,
+        flagSliding: false,
+        flagY: 0,
+        fireworksActive: false,
+        fireworkTimer: 0
     };
-    document.getElementById('heartCount').textContent = '0';
-    document.getElementById('levelNumber').textContent = '1';
-}
 
-// Main game loop
-function gameLoop() {
-    // Always draw the background and objects
-    drawBackground(gameState.currentLevel);
-    hazards.forEach(hazard => drawHazard(hazard));
-    hearts.forEach(heart => drawHeart(heart));
+    var fireworks = []; // particle array
 
-    // Only update game logic if not paused
-    if (gameState.running && !gameState.paused) {
-        updatePlayer();
-        checkHeartCollision();
+    let player = {
+        x: 100,
+        y: 0,
+        width: CHAR_DISPLAY_W,
+        height: CHAR_DISPLAY_H,
+        velocityY: 0,
+        jumping: false,
+        isAirborne: false,
+        facing: 1
+    };
+
+    let hearts = [];
+    let questionBlockHit = []; // one bool per block: true after hit from below
+    let gameLoopId = null;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        GROUND_Y = canvas.height - 80;
+        if (typeof player !== 'undefined' && player.y === 0) player.y = GROUND_Y;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', resizeCanvas);
+
+    function initHearts() {
+        questionBlockHit = HEART_PLATFORMS.map(function() { return false; });
+        hearts = HEART_PLATFORMS.map(function(plat, i) {
+            const blockCenterX = plat.x + plat.heartIndex * TILE_W + TILE_W / 2;
+            return {
+                memoryId: i,
+                x: blockCenterX - HEART_W / 2,
+                y: GROUND_Y + plat.yOff - HEART_H - 8,
+                width: HEART_W,
+                height: HEART_H,
+                collected: false,
+                released: false,
+                angle: Math.random() * Math.PI * 2
+            };
+        });
     }
 
-    drawPlayer();
-
-    // Always request next frame if running
-    if (gameState.running) {
-        gameLoopId = requestAnimationFrame(gameLoop);
-    } else {
-        gameLoopId = null;
+    function drawSky() {
+        const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        g.addColorStop(0, '#5C94E3');
+        g.addColorStop(1, '#B4D8F7');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-}
 
-console.log('Game ready! Click START GAME to begin.');
+    function drawClouds() {
+        var t = sprites.tiles;
+        var scale = 2;
+        var basePos = [100, 500, 900, 1400, 2000, 2600, 3200, 3800, 4500];
+        if (t && t.complete) {
+            basePos.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.3;
+                var y = 60;
+                ctx.drawImage(t, 211, 69, 8, 24, x, y, 8 * scale, 24 * scale);
+                ctx.drawImage(t, 219, 69, 16, 24, x + 8 * scale, y, 16 * scale, 24 * scale);
+                ctx.drawImage(t, 219, 69, 16, 24, x + 24 * scale, y, 16 * scale, 24 * scale);
+                ctx.drawImage(t, 235, 69, 8, 24, x + 40 * scale, y, 8 * scale, 24 * scale);
+            });
+        } else {
+            ctx.fillStyle = '#FFFFFF';
+            basePos.forEach(function(baseX) {
+                var x = baseX - gameState.scrollOffset * 0.3;
+                var y = 70;
+                ctx.beginPath();
+                ctx.arc(x, y + 5, 18, 0, Math.PI * 2);
+                ctx.arc(x + 22, y, 22, 0, Math.PI * 2);
+                ctx.arc(x + 48, y + 5, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(x - 8, y + 2, 72, 14);
+            });
+        }
+    }
+
+    function drawPipes() {
+        var t = sprites.tiles;
+        var scale = 2;
+        PIPE_XS.forEach(function(worldX, idx) {
+            var x = worldX - gameState.scrollOffset;
+            if (x + PIPE_W * scale < 0 || x > canvas.width) return;
+            if (t && t.complete) {
+                var rim = TILES_PIPE_RIM, body = TILES_PIPE_BODY;
+                var smooth = ctx.imageSmoothingEnabled;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(t, rim.sx, rim.sy, rim.sw, rim.sh, x, GROUND_Y - PIPE_H, rim.sw * scale, rim.sh * scale);
+                ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + 32, body.sw * scale, body.sh * scale);
+                ctx.drawImage(t, body.sx, body.sy, body.sw, body.sh, x, GROUND_Y - PIPE_H + 64, body.sw * scale, body.sh * scale);
+                ctx.imageSmoothingEnabled = smooth;
+            } else {
+                var fill = idx % 2 === 0 ? '#00A800' : '#6A6A6A';
+                var dark = idx % 2 === 0 ? '#006000' : '#4A4A4A';
+                ctx.fillStyle = fill;
+                ctx.fillRect(x, GROUND_Y - PIPE_H, PIPE_W, PIPE_H);
+                ctx.fillStyle = dark;
+                ctx.fillRect(x - 4, GROUND_Y - PIPE_H - 6, PIPE_W + 8, 10);
+                ctx.fillStyle = fill;
+            }
+        });
+    }
+
+    function drawCastle() {
+        var dx = CASTLE_X - gameState.scrollOffset;
+        if (dx + CASTLE_W < 0 || dx > canvas.width + 50) return;
+        var baseY = GROUND_Y - CASTLE_H + 24;
+        var t = sprites.tiles;
+        if (t && t.complete) {
+            var r = TILES_CASTLE;
+            var imgW = t.naturalWidth || 411;
+            var imgH = t.naturalHeight || 949;
+            var sx = Math.max(0, r.sx);
+            var sy = Math.max(0, r.sy);
+            var sw = Math.min(r.sw, imgW - sx);
+            var sh = Math.min(r.sh, imgH - sy);
+            if (sw > 0 && sh > 0) {
+                var smooth = ctx.imageSmoothingEnabled;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(t, sx, sy, sw, sh, dx, baseY, CASTLE_W, CASTLE_H);
+                ctx.imageSmoothingEnabled = smooth;
+            }
+        } else {
+            var tw = TILE_W, th = TILE_H;
+            var img = sprites.ground;
+            var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+            var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+            for (var cx = 0; cx < CASTLE_W; cx += tw) {
+                for (var cy = 0; cy < CASTLE_H; cy += th) {
+                    if (img && img.complete) {
+                        ctx.drawImage(img, 0, 0, sw, sh, dx + cx, baseY + cy, tw, th);
+                        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                        ctx.fillRect(dx + cx, baseY + cy, tw, th);
+                    } else {
+                        ctx.fillStyle = '#4A4A4A';
+                        ctx.fillRect(dx + cx, baseY + cy, tw, th);
+                    }
+                }
+            }
+            var doorW = 72, doorH = 80;
+            var doorX = dx + (CASTLE_W - doorW) / 2;
+            var doorY = baseY + CASTLE_H - doorH - 24;
+            ctx.fillStyle = '#0D0D0D';
+            ctx.fillRect(doorX, doorY, doorW, doorH);
+        }
+    }
+
+    function drawBrickPlatforms() {
+        var img = sprites.ground;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        function drawPlatform(x, y, w, h) {
+            x = x - gameState.scrollOffset;
+            if (x + w < 0 || x > canvas.width) return;
+            if (!img || !img.complete) {
+                ctx.fillStyle = '#C87838';
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+            } else {
+                for (var cx = 0; cx < w; cx += tw) {
+                    for (var cy = 0; cy < h; cy += th) {
+                        ctx.drawImage(img, 0, 0, sw, sh, x + cx, y + cy, tw, th);
+                    }
+                }
+            }
+        }
+        BRICK_PLATFORMS.forEach(function(p) {
+            drawPlatform(p.x, GROUND_Y + p.yOff, p.w, p.h);
+        });
+    }
+
+    function drawHeartPlatforms() {
+        var img = sprites.ground;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        HEART_PLATFORMS.forEach(function(plat, i) {
+            var baseX = plat.x - gameState.scrollOffset;
+            if (baseX + plat.numBlocks * tw < 0 || baseX > canvas.width) return;
+            var y = GROUND_Y + plat.yOff;
+            for (var col = 0; col < plat.numBlocks; col++) {
+                var x = baseX + col * tw;
+                if (x + tw < 0 || x > canvas.width) continue;
+                var isHeartBlock = col === plat.heartIndex;
+                var hit = isHeartBlock && questionBlockHit[i];
+                if (isHeartBlock) {
+                    if (hit) {
+                        ctx.fillStyle = '#8B6914';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#5C4033';
+                    } else {
+                        ctx.fillStyle = '#C87838';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#8B4513';
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold ' + (th * 0.5) + 'px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('?', x + tw / 2, y + th * 0.72);
+                        ctx.textAlign = 'left';
+                    }
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, tw, th);
+                } else {
+                    if (img && img.complete) {
+                        ctx.drawImage(img, 0, 0, sw, sh, x, y, tw, th);
+                    } else {
+                        ctx.fillStyle = '#C87838';
+                        ctx.fillRect(x, y, tw, th);
+                        ctx.strokeStyle = '#8B4513';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x, y, tw, th);
+                    }
+                }
+            }
+        });
+    }
+
+    function drawTriangleMountain() {
+        var img = sprites.ground;
+        var baseLeft = TRIANGLE_MOUNTAIN_LEFT - gameState.scrollOffset;
+        if (baseLeft + TRIANGLE_MOUNTAIN_BASE_BLOCKS * TILE_W < 0 || baseLeft > canvas.width) return;
+        var tw = TILE_W, th = TILE_H;
+        var sw = (img && img.complete && img.naturalWidth === 80) ? 16 : tw;
+        var sh = (img && img.complete && img.naturalWidth === 80) ? 16 : th;
+        var centerX = baseLeft + (TRIANGLE_MOUNTAIN_BASE_BLOCKS * tw) / 2;
+        for (var row = 0; row < TRIANGLE_MOUNTAIN_ROWS; row++) {
+            var blocksInRow = TRIANGLE_MOUNTAIN_BASE_BLOCKS - 2 * row;
+            if (blocksInRow < 1) break;
+            var rowY = GROUND_Y - (row + 1) * th;
+            var rowLeft = centerX - (blocksInRow * tw) / 2;
+            for (var col = 0; col < blocksInRow; col++) {
+                var tx = rowLeft + col * tw;
+                if (tx + tw < 0 || tx > canvas.width) continue;
+                if (img && img.complete) {
+                    ctx.drawImage(img, 0, 0, sw, sh, tx, rowY, tw, th);
+                } else {
+                    ctx.fillStyle = '#8B7355';
+                    ctx.fillRect(tx, rowY, tw, th);
+                    ctx.strokeStyle = '#5C4033';
+                    ctx.strokeRect(tx, rowY, tw, th);
+                }
+            }
+        }
+    }
+
+    function drawFlagpole() {
+        // Sprite is 24x168, scaled to fit FLAGPOLE_H
+        var scale = FLAGPOLE_H / 168;
+        var displayW = Math.round(24 * scale);
+        var screenX = FLAGPOLE_X - gameState.scrollOffset;
+        // The pole shaft sits at roughly local x=14 in the 24px sprite
+        var drawX = screenX - Math.round(14 * scale);
+        var drawY = GROUND_Y - FLAGPOLE_H;
+
+        if (drawX + displayW < 0 || drawX > canvas.width) return;
+
+        var t = sprites.tiles;
+        if (t && t.complete) {
+            // Pick animation frame based on flag slide progress
+            var frameIdx = 0; // flag at top
+            if (gameState.flagSliding || (gameState.flagReached && !gameState.flagSliding)) {
+                var poleTop = GROUND_Y - FLAGPOLE_H;
+                var slideEnd = GROUND_Y - FLAG_DISPLAY_H;
+                var progress = (gameState.flagY - poleTop) / (slideEnd - poleTop);
+                progress = Math.max(0, Math.min(1, progress));
+                frameIdx = Math.min(4, Math.floor(progress * 5));
+            }
+            var frame = FLAGPOLE_FRAMES[frameIdx];
+            var smooth = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(t, frame.sx, frame.sy, frame.sw, frame.sh,
+                          drawX, drawY, displayW, FLAGPOLE_H);
+            ctx.imageSmoothingEnabled = smooth;
+        } else {
+            // Minimal fallback when tiles.png fails to load
+            var poleW = 8;
+            ctx.fillStyle = '#6B8E23';
+            ctx.fillRect(screenX - poleW / 2, drawY, poleW, FLAGPOLE_H);
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.arc(screenX, drawY, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function spawnFireworkBurst() {
+        // Burst origin above the castle (world coords)
+        var cx = CASTLE_X + CASTLE_W * (0.2 + Math.random() * 0.6);
+        var cy = GROUND_Y - CASTLE_H - 40 - Math.random() * 200;
+        var count = 30 + Math.floor(Math.random() * 25);
+        var hue = Math.floor(Math.random() * 360);
+        for (var i = 0; i < count; i++) {
+            var angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.4;
+            var speed = 2 + Math.random() * 4;
+            fireworks.push({
+                x: cx,
+                y: cy,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 60 + Math.floor(Math.random() * 40),
+                maxLife: 100,
+                size: 2 + Math.random() * 2,
+                hue: hue + Math.floor(Math.random() * 40 - 20),
+                bright: 1
+            });
+        }
+    }
+
+    function updateFireworks() {
+        if (!gameState.fireworksActive) return;
+        gameState.fireworkTimer++;
+        // Spawn a new burst every ~30 frames
+        if (gameState.fireworkTimer % 30 === 0 || gameState.fireworkTimer === 1) {
+            spawnFireworkBurst();
+        }
+        for (var i = fireworks.length - 1; i >= 0; i--) {
+            var p = fireworks[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.06; // gravity
+            p.vx *= 0.98; // drag
+            p.vy *= 0.98;
+            p.life--;
+            p.bright = Math.max(0, p.life / p.maxLife);
+            if (p.life <= 0) fireworks.splice(i, 1);
+        }
+    }
+
+    function drawFireworks() {
+        if (fireworks.length === 0) return;
+        for (var i = 0; i < fireworks.length; i++) {
+            var p = fireworks[i];
+            var sx = p.x - gameState.scrollOffset;
+            if (sx < -20 || sx > canvas.width + 20) continue;
+            var alpha = p.bright * 0.9 + 0.1;
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = 'hsl(' + p.hue + ',100%,' + Math.round(50 + p.bright * 30) + '%)';
+            ctx.beginPath();
+            ctx.arc(sx, p.y, p.size * p.bright, 0, Math.PI * 2);
+            ctx.fill();
+            // glow trail
+            ctx.globalAlpha = alpha * 0.3;
+            ctx.beginPath();
+            ctx.arc(sx, p.y, p.size * p.bright * 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function drawGroundTiles() {
+        if (!sprites.ground || !sprites.ground.complete) return;
+        var img = sprites.ground;
+        var sw = img.naturalWidth === 80 ? 16 : TILE_W;
+        var sh = img.naturalWidth === 80 ? 16 : TILE_H;
+        const startCol = Math.floor(gameState.scrollOffset / TILE_W);
+        const numCols = Math.ceil(canvas.width / TILE_W) + 2;
+        const rows = Math.ceil((canvas.height - GROUND_Y) / TILE_H) + 1;
+        for (let col = -1; col <= numCols; col++) {
+            for (let row = 0; row < rows; row++) {
+                const sx = (startCol + col) * TILE_W - gameState.scrollOffset;
+                const sy = GROUND_Y + row * TILE_H;
+                if (sx + TILE_W < 0 || sx > canvas.width) continue;
+                ctx.drawImage(img, 0, 0, sw, sh, sx, sy, TILE_W, TILE_H);
+            }
+        }
+    }
+
+    function drawHearts() {
+        if (!sprites.heart || !sprites.heart.complete) return;
+        var img = sprites.heart;
+        var sw = img.naturalWidth || 13;
+        var sh = img.naturalHeight || 12;
+        var displayW = 39; // 13 * 3 — crisp integer scale
+        var displayH = 36; // 12 * 3
+        hearts.forEach(function(heart) {
+            if (heart.collected || !heart.released) return;
+            var x = heart.x - gameState.scrollOffset;
+            if (x + displayW < 0 || x > canvas.width) return;
+
+            // heartbeat rhythm: quick double-thump then pause
+            heart.angle += 0.08;
+            var t = heart.angle % (Math.PI * 2);
+            var beat = 0;
+            if (t < 0.5) beat = Math.sin(t * Math.PI / 0.5) * 0.22;
+            else if (t < 1.2) beat = Math.sin((t - 0.5) * Math.PI / 0.7) * 0.13;
+            var scale = 1 + beat;
+
+            var cx = x + HEART_W / 2;
+            var cy = heart.y + HEART_H / 2;
+
+            // pulsing glow
+            var glowR = 24 * (1 + beat * 2);
+            var glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, glowR);
+            glow.addColorStop(0, 'rgba(255,50,80,0.3)');
+            glow.addColorStop(0.6, 'rgba(255,50,80,0.1)');
+            glow.addColorStop(1, 'rgba(255,50,80,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // pixel-perfect heart sprite
+            var smooth = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(scale, scale);
+            ctx.drawImage(img, 0, 0, sw, sh, -displayW / 2, -displayH / 2, displayW, displayH);
+            ctx.restore();
+            ctx.imageSmoothingEnabled = smooth;
+        });
+    }
+
+    function drawPlayer() {
+        if (!sprites.character || !sprites.character.complete) return;
+        const screenX = player.x - gameState.scrollOffset;
+        if (screenX + CHAR_DISPLAY_W < 0 || screenX > canvas.width) return;
+        var r, dw, dh, dy, img = sprites.character;
+        var faceRight = player.facing === 1;
+        if (useFallbackCharacter) {
+            var frame = Math.floor(gameState.animTime / 8) % 4;
+            var w = 32, h = 48;
+            var drawY = player.y - h;
+            if (faceRight) {
+                ctx.save();
+                ctx.translate(screenX + w / 2, drawY + h / 2);
+                ctx.scale(-1, 1);
+                ctx.translate(-(screenX + w / 2), -(drawY + h / 2));
+                ctx.drawImage(img, frame * 32, 0, w, h, screenX, drawY, w, h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(img, frame * 32, 0, w, h, screenX, drawY, w, h);
+            }
+            return;
+        }
+        r = MARIO_RUN_FRAMES[Math.floor(gameState.animTime / 8) % MARIO_RUN_FRAMES.length];
+        dw = CHAR_DISPLAY_W;
+        dh = r[3] * (CHAR_DISPLAY_W / r[2]);
+        dy = player.y - dh;
+        var sy = img.naturalHeight - r[1] - r[3];
+        if (faceRight) {
+            ctx.save();
+            ctx.translate(screenX + dw / 2, dy + dh / 2);
+            ctx.scale(-1, 1);
+            ctx.translate(-(screenX + dw / 2), -(dy + dh / 2));
+            ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+            ctx.restore();
+        } else {
+            ctx.drawImage(img, r[0], sy, r[2], r[3], screenX, dy, dw, dh);
+        }
+    }
+
+    var keys = { left: false, right: false };
+
+    function updatePlayer() {
+        var poleW = 16;
+        var poleTopY = GROUND_Y - FLAGPOLE_H;
+
+        if (gameState.flagSliding) {
+            gameState.flagY += 6;
+            player.x = FLAGPOLE_X - 6;
+            player.y = gameState.flagY - player.height + 10;
+            if (gameState.flagY >= GROUND_Y - FLAG_DISPLAY_H) {
+                gameState.flagSliding = false;
+                gameState.running = false;
+                document.getElementById('endScreen').classList.remove('hidden');
+            }
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (gameState.flagReached) {
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (!gameState.flagReached && player.x + player.width >= FLAGPOLE_X && player.x <= FLAGPOLE_X + poleW + 24) {
+            gameState.flagReached = true;
+            gameState.flagSliding = true;
+            gameState.flagY = poleTopY;
+            gameState.fireworksActive = true;
+            gameState.fireworkTimer = 0;
+            player.x = FLAGPOLE_X - 6;
+            player.velocityY = 0;
+            gameState.scrollOffset = Math.max(0, player.x - 200);
+            gameState.animTime++;
+            return;
+        }
+
+        if (keys.right && !keys.left) {
+            player.x += SCROLL_SPEED;
+            player.facing = 1;
+        } else if (keys.left && !keys.right) {
+            player.x -= SCROLL_SPEED;
+            player.facing = -1;
+        }
+        player.x = Math.max(100, player.x);
+        player.velocityY += GRAVITY;
+        player.y += player.velocityY;
+
+        var footY = player.y;
+        var headY = player.y - player.height;
+        var left = player.x;
+        var right = player.x + player.width;
+
+        function getTriangleMountainPlatforms() {
+            var list = [];
+            var tw = TILE_W, th = TILE_H;
+            var centerWorld = TRIANGLE_MOUNTAIN_LEFT + (TRIANGLE_MOUNTAIN_BASE_BLOCKS * tw) / 2;
+            for (var row = 0; row < TRIANGLE_MOUNTAIN_ROWS; row++) {
+                var blocksInRow = TRIANGLE_MOUNTAIN_BASE_BLOCKS - 2 * row;
+                if (blocksInRow < 1) break;
+                var rowY = GROUND_Y - (row + 1) * th;
+                var rowLeftWorld = centerWorld - (blocksInRow * tw) / 2;
+                for (var col = 0; col < blocksInRow; col++) {
+                    list.push({ x: rowLeftWorld + col * tw, y: rowY, w: tw, h: th });
+                }
+            }
+            return list;
+        }
+        function getPlatforms() {
+            var list = [];
+            BRICK_PLATFORMS.forEach(function(p) {
+                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.w, h: p.h });
+            });
+            HEART_PLATFORMS.forEach(function(p) {
+                list.push({ x: p.x, y: GROUND_Y + p.yOff, w: p.numBlocks * TILE_W, h: TILE_H });
+            });
+            getTriangleMountainPlatforms().forEach(function(p) {
+                list.push(p);
+            });
+            PIPE_XS.forEach(function(px) {
+                list.push({ x: px, y: GROUND_Y - PIPE_H, w: PIPE_W, h: 0 });
+            });
+            return list;
+        }
+
+        if (player.velocityY >= 0) {
+            var platforms = getPlatforms();
+            var onGround = false;
+            if (footY >= GROUND_Y) {
+                player.y = GROUND_Y;
+                player.velocityY = 0;
+                player.jumping = false;
+                onGround = true;
+            }
+            if (!onGround) {
+                platforms.forEach(function(plat) {
+                    var platTop = plat.y;
+                    if (right > plat.x && left < plat.x + plat.w && headY < platTop + (plat.h || 1) && footY >= platTop - 4 && footY <= platTop + 20) {
+                        player.y = platTop;
+                        player.velocityY = 0;
+                        player.jumping = false;
+                        onGround = true;
+                    }
+                });
+            }
+            if (!onGround) player.isAirborne = true;
+        } else {
+            player.isAirborne = true;
+        }
+        if (player.y < GROUND_Y) player.isAirborne = true;
+
+        PIPE_XS.forEach(function(px) {
+            var pipeLeft = px, pipeRight = px + PIPE_W;
+            if (right > pipeLeft && left < pipeRight) {
+                var pipeTop = GROUND_Y - PIPE_H;
+                if (footY > pipeTop && headY < GROUND_Y) {
+                    if (player.x + player.width * 0.5 < px + PIPE_W * 0.5) {
+                        player.x = px - player.width;
+                    } else {
+                        player.x = pipeRight;
+                    }
+                }
+            }
+        });
+
+        getTriangleMountainPlatforms().forEach(function(block) {
+            var blockLeft = block.x, blockRight = block.x + block.w;
+            var blockTop = block.y, blockBottom = block.y + block.h;
+            var overlapping = right > blockLeft && left < blockRight && headY < blockBottom && footY > blockTop;
+            var standingOnBlock = footY >= blockTop - 4 && footY <= blockTop + 20;
+            if (overlapping && !standingOnBlock) {
+                if (player.x + player.width * 0.5 < blockLeft + block.w * 0.5) {
+                    player.x = blockLeft - player.width;
+                } else {
+                    player.x = blockRight;
+                }
+            }
+        });
+
+        if (player.velocityY < 0) {
+            HEART_PLATFORMS.forEach(function(plat, i) {
+                if (questionBlockHit[i]) return;
+                var qx = plat.x + plat.heartIndex * TILE_W;
+                var blockTop = GROUND_Y + plat.yOff;
+                var blockBottom = blockTop + TILE_H;
+                if (headY <= blockBottom && headY >= blockBottom - 36 && right > qx && left < qx + TILE_W) {
+                    player.y = blockBottom + player.height + 2;
+                    player.velocityY = 0;
+                    questionBlockHit[i] = true;
+                    hearts[i].released = true;
+                    hearts[i].y = blockTop - HEART_H - 8;
+                }
+            });
+        }
+
+        gameState.scrollOffset = Math.max(0, player.x - 200);
+        gameState.animTime++;
+    }
+
+    function checkHeartCollision() {
+        hearts.forEach(function(heart) {
+            if (heart.collected || !heart.released) return;
+            const dx = (player.x + player.width / 2) - (heart.x + heart.width / 2);
+            const dy = (player.y - player.height / 2) - (heart.y + heart.height / 2);
+            if (Math.abs(dx) < 28 && Math.abs(dy) < 32) {
+                heart.collected = true;
+                gameState.heartsCollected++;
+                document.getElementById('heartCount').textContent = gameState.heartsCollected;
+                showMemory(heart.memoryId);
+                gameState.paused = true;
+                document.getElementById('instructions').style.display = 'none';
+            }
+        });
+    }
+
+    function showMemory(memoryId) {
+        const m = MEMORIES[memoryId];
+        document.getElementById('memoryTitle').textContent = m.title;
+        document.getElementById('memoryText').textContent = m.text;
+        document.getElementById('memoryScreen').classList.remove('hidden');
+    }
+
+    function closeMemory() {
+        document.getElementById('memoryScreen').classList.add('hidden');
+        gameState.paused = false;
+        document.getElementById('instructions').style.display = 'block';
+        // Let the player continue to the flagpole — the flag-sliding
+        // logic in updatePlayer() will show the end screen when they arrive.
+    }
+
+    function gameLoop() {
+        drawSky();
+        drawClouds();
+        drawPipes();
+        drawCastle();
+        drawBrickPlatforms();
+        drawGroundTiles();
+        drawTriangleMountain();
+        drawHeartPlatforms();
+        drawHearts();
+        if (gameState.running && !gameState.paused) {
+            updatePlayer();
+            checkHeartCollision();
+        }
+        updateFireworks();
+        drawPlayer();
+        drawFlagpole();
+        drawFireworks();
+        if (gameState.running || gameState.fireworksActive) gameLoopId = requestAnimationFrame(gameLoop);
+        else gameLoopId = null;
+    }
+
+    function handleJump() {
+        if (player.jumping || gameState.paused || !gameState.running) return;
+        player.velocityY = JUMP_STRENGTH;
+        player.jumping = true;
+    }
+
+    window.startGame = function() {
+        document.getElementById('startScreen').classList.add('hidden');
+        gameState.running = true;
+        gameState.paused = false;
+        gameState.heartsCollected = 0;
+        gameState.scrollOffset = 0;
+        gameState.animTime = 0;
+        gameState.flagReached = false;
+        gameState.flagSliding = false;
+        gameState.flagY = 0;
+        gameState.fireworksActive = false;
+        gameState.fireworkTimer = 0;
+        fireworks = [];
+        document.getElementById('heartCount').textContent = '0';
+        player.x = 100;
+        player.y = GROUND_Y;
+        player.velocityY = 0;
+        player.jumping = false;
+        initHearts();
+        document.getElementById('instructions').style.display = 'block';
+        gameLoop();
+    };
+
+    window.closeMemory = closeMemory;
+
+    window.restartGame = function() {
+        document.getElementById('endScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+    };
+
+    canvas.addEventListener('click', handleJump);
+
+    // Gate canvas touchstart so it doesn't fire jump when a touch-control button is tapped
+    canvas.addEventListener('touchstart', function(e) {
+        var target = e.target;
+        if (target && (target.id === 'btnLeft' || target.id === 'btnRight' || target.id === 'btnJump')) return;
+        e.preventDefault();
+        handleJump();
+    }, { passive: false });
+
+    // --- Mobile touch controls ---
+    var btnLeft = document.getElementById('btnLeft');
+    var btnRight = document.getElementById('btnRight');
+    var btnJump = document.getElementById('btnJump');
+
+    function addTouchControl(btn, onDown, onUp) {
+        btn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.classList.add('active');
+            onDown();
+        }, { passive: false });
+        btn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.classList.remove('active');
+            onUp();
+        }, { passive: false });
+        btn.addEventListener('touchcancel', function(e) {
+            e.preventDefault();
+            btn.classList.remove('active');
+            onUp();
+        }, { passive: false });
+        // Prevent click from bubbling to canvas (which would trigger handleJump)
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    addTouchControl(btnLeft,
+        function() { keys.left = true; },
+        function() { keys.left = false; }
+    );
+    addTouchControl(btnRight,
+        function() { keys.right = true; },
+        function() { keys.right = false; }
+    );
+    addTouchControl(btnJump,
+        function() { handleJump(); },
+        function() { /* nothing on release */ }
+    );
+
+    window.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            var startEl = document.getElementById('startScreen');
+            var memoryEl = document.getElementById('memoryScreen');
+            var endEl = document.getElementById('endScreen');
+            if (!startEl.classList.contains('hidden') && !document.getElementById('startBtn').disabled) {
+                startGame();
+            } else if (!memoryEl.classList.contains('hidden')) {
+                closeMemory();
+            } else if (endEl && !endEl.classList.contains('hidden')) {
+                restartGame();
+            } else {
+                handleJump();
+            }
+        }
+        if (e.code === 'ArrowLeft') { e.preventDefault(); keys.left = true; }
+        if (e.code === 'ArrowRight') { e.preventDefault(); keys.right = true; }
+    });
+    window.addEventListener('keyup', function(e) {
+        if (e.code === 'ArrowLeft') keys.left = false;
+        if (e.code === 'ArrowRight') keys.right = false;
+    });
+})();
