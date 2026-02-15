@@ -958,6 +958,11 @@
     }
 
     window.startGame = function() {
+        // Cancel any previously running game loop to prevent stacking
+        if (gameLoopId) {
+            cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
+        }
         document.getElementById('startScreen').classList.add('hidden');
         gameState.running = true;
         gameState.paused = false;
